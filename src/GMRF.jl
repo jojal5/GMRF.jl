@@ -2,8 +2,6 @@ module GMRF
 
 using LinearAlgebra, SparseArrays, StatsBase
 
-include("functions.jl")
-
 struct GraphStructure
     order::Int               # Order of the field
     m₁::Int                  # Number of rows
@@ -19,6 +17,8 @@ struct iGMRF
     κ::Real                       # Precision of the field
     G::GraphStructure
 end
+
+include("functions.jl")
 
 export structure_igmrf, rand, logpdf
 
