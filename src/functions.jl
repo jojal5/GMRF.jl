@@ -129,8 +129,8 @@ function rand(F::iGMRF)
     else
 
         e₁ = ones(m)
-        e₂ = repeat(1:m₁,inner = m₂)
-        e₃ = repeat(1:m₂,outer = m₁)
+        e₂ = repeat(1:m₁, m₂)
+        e₃ = repeat(1:m₂,inner = m₁)
 
         A = hcat(e₁,e₂,e₃)
 

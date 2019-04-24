@@ -18,6 +18,7 @@ struct iGMRF
     G::GraphStructure
 end
 
+import Distributions.rand, Distributions.logpdf
 include("functions.jl")
 
 export structure_igmrf, rand, logpdf
