@@ -1,6 +1,6 @@
 module GMRF
 
-using LinearAlgebra, SparseArrays, StatsBase
+using LinearAlgebra, SparseArrays, StatsBase, Distributions
 
 struct GraphStructure
     order::Int               # Order of the field
