@@ -208,7 +208,7 @@ function rand(F::iGMRF)
 
     end
 
-    C = cholesky(Q)
+    C = cholesky(Q, check = false)
     L = C.L
 
     z = randn(m)
