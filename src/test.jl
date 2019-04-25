@@ -18,3 +18,7 @@ e₃ = repeat(1:m₂,inner = m₁)
 all(isapprox.(G.W*e₁,0))
 all(isapprox.(G.W*e₂,0))
 all(isapprox.(G.W*e₃,0))
+
+Q = Array{Float64}(G.W) + e₁*e₁' + e₂*e₂' + e₃*e₃'
+
+C = cholesky(Q)

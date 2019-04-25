@@ -81,12 +81,10 @@ grid of size (m1 * m2). =#
         # Alternative by adding molecules. There should not be missing values in the grid.
 
         W = spzeros(Int64,m,m)
-        pos = 0
+        pos = reshape(1:m,m₁,m₂)
 
         for i=1:m₁
             for j=1:m₂
-
-                pos += 1
 
                 S = zeros(Int64,m₁,m₂)
 
@@ -134,11 +132,10 @@ grid of size (m1 * m2). =#
                     S[i:i+1,j-1:j] = S[i:i+1,j-1:j] + [-2 2; 2 -2]
                 end
 
-                W[pos,:] = S[:]
+                W[:,pos[i,j]] = S[:]
 
             end
         end
-
 
 
         # Compute the list of neighbors for each node
@@ -208,7 +205,7 @@ function rand(F::iGMRF)
 
     end
 
-    C = cholesky(Q, check = false)
+    C = cholesky(Q)
     L = C.L
 
     z = randn(m)
