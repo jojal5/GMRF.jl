@@ -47,29 +47,99 @@ grid of size (m1 * m2). =#
 
     elseif order==2
 
-        v = ones(Int64,m₁)
-        v[2:end-1] .= 2
-        W1m1 = spdiagm(-1 => -ones(Int64,m₁-1), 0 => v, 1 => -ones(Int64,m₁-1))
+        #= Method described in Paciorek, C. and Liu, Y. 2012. Assessment and
+        statistical modeling of the relationship between remotely-sensed aerosol
+        optical depth and PM2.5. Health Effects Institute Research Report 167
+        (peer-reviewed). =#
 
-        v = ones(Int64,m₂)
-        v[2:end-1] .= 2
-        W1m2 = spdiagm(-1 => -ones(Int64,m₂-1), 0 => v, 1 => -ones(Int64,m₂-1))
+        # BUT THERE IS A BUG FOR RECTANGULAR GRIDS
 
-        v1 = ones(Int64,m₁)
-        v1[2:end-1] .= 5
-        v1[3:end-2] .= 6
-        v2 = fill(-2,m₁-1)
-        v2[2:end-1] .= -4
-        W2m1 = spdiagm(-2 => ones(Int64,m₁-2), -1 => v2, 0 => v1, 1 => v2, 2 => ones(Int64,m₁-2))
+        # v = ones(Int64,m₁)
+        # v[2:end-1] .= 2
+        # W1m1 = spdiagm(-1 => -ones(Int64,m₁-1), 0 => v, 1 => -ones(Int64,m₁-1))
+        #
+        # v = ones(Int64,m₂)
+        # v[2:end-1] .= 2
+        # W1m2 = spdiagm(-1 => -ones(Int64,m₂-1), 0 => v, 1 => -ones(Int64,m₂-1))
+        #
+        # v1 = ones(Int64,m₁)
+        # v1[2:end-1] .= 5
+        # v1[3:end-2] .= 6
+        # v2 = fill(-2,m₁-1)
+        # v2[2:end-1] .= -4
+        # W2m1 = spdiagm(-2 => ones(Int64,m₁-2), -1 => v2, 0 => v1, 1 => v2, 2 => ones(Int64,m₁-2))
+        #
+        # v1 = ones(Int64,m₂)
+        # v1[2:end-1] .= 5
+        # v1[3:end-2] .= 6
+        # v2 = fill(-2,m₂-1)
+        # v2[2:end-1] .= -4
+        # W2m2 = spdiagm(-2 => ones(Int64,m₂-2), -1 => v2, 0 => v1, 1 => v2, 2 => ones(Int64,m₂-2))
+        #
+        # W = kron(spdiagm(0 => ones(Int64,m₂)),W2m1) + 2*kron(W1m1,W1m2) + kron(W2m2,spdiagm(0 => ones(Int64,m₁)));
 
-        v1 = ones(Int64,m₂)
-        v1[2:end-1] .= 5
-        v1[3:end-2] .= 6
-        v2 = fill(-2,m₂-1)
-        v2[2:end-1] .= -4
-        W2m2 = spdiagm(-2 => ones(Int64,m₂-2), -1 => v2, 0 => v1, 1 => v2, 2 => ones(Int64,m₂-2))
+        # Alternative by adding molecules. There should not be missing values in the grid.
 
-        W = kron(spdiagm(0 => ones(Int64,m₂)),W2m1) + 2*kron(W1m1,W1m2) + kron(W2m2,spdiagm(0 => ones(Int64,m₁)));
+        W = spzeros(Int64,m,m)
+        pos = 0
+
+        for i=1:m₁
+            for j=1:m₂
+
+                pos += 1
+
+                S = zeros(Int64,m₁,m₂)
+
+                if (i-2>0)
+                   S[i-2:i,j] =  S[i-2:i,j] + [1, -2, 1]
+                end
+
+                if (i+2<=m₁)
+                   S[i:i+2,j] =  S[i:i+2,j] + [1, -2, 1]
+                end
+
+                if (j-2>0)
+                   S[i,j-2:j] =  S[i,j-2:j] + [1,-2, 1]
+                end
+
+                if (j+2<=m₂)
+                   S[i,j:j+2] =  S[i,j:j+2] + [1,-2, 1]
+                end
+
+
+
+                if (i-1>0) && (i+1<=m₁)
+                    S[i-1:i+1,j] = S[i-1:i+1,j] + [-2, 4, -2]
+                end
+
+                if (j-1>0) && (j+1<=m₂)
+                    S[i,j-1:j+1] = S[i,j-1:j+1] + [-2, 4, -2]
+                end
+
+
+
+                if (i-1>0) && (j+1<=m₂)
+                    S[i-1:i,j:j+1] = S[i-1:i,j:j+1] + [-2 2; 2 -2]
+                end
+
+                if (i+1<=m₁) && (j+1<=m₂)
+                    S[i:i+1,j:j+1] = S[i:i+1,j:j+1] + [2 -2; -2 2]
+                end
+
+                if (i-1>0) && (j-1>0)
+                    S[i-1:i,j-1:j] = S[i-1:i,j-1:j] + [2 -2; -2 2]
+                end
+
+                if (i+1<=m₁) && (j-1>0)
+                    S[i:i+1,j-1:j] = S[i:i+1,j-1:j] + [-2 2; 2 -2]
+                end
+
+                W[pos,:] = S[:]
+
+            end
+        end
+
+
 
         # Compute the list of neighbors for each node
         nbs =  Array{Int64,1}[]
