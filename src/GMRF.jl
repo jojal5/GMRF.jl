@@ -2,6 +2,8 @@ module GMRF
 
 using LinearAlgebra, SparseArrays, StatsBase, Distributions
 
+import Distributions.rand, Distributions.logpdf
+
 struct GraphStructure
     order::Int               # Order of the field
     m₁::Int                  # Number of rows
