@@ -22,3 +22,5 @@ all(isapprox.(G.W*e₃,0))
 Q = Array{Float64}(G.W) + e₁*e₁' + e₂*e₂' + e₃*e₃'
 
 C = cholesky(Q)
+
+C = cholesky(G.W)
