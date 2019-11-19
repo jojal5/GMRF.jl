@@ -108,7 +108,7 @@ grid of size (m1 * m2). =#
 
     condIndSubset = get_condindsubsets(m₁,m₂,order)
 
-    W̄ = sparse(diagm(nnbs)) - W
+    W̄ = W - sparse(diagm(nnbs))
 
     G = GraphStructure(order,m₁,m₂,m,nbs,nnbs,W,W̄,condIndSubset)
 
@@ -238,8 +238,9 @@ function condlogpdf(F::iGMRF,y::Vector{<:Real})
 
     W̄ = F.G.W̄
 
-    h = μ - W̄*y
     Q = κ * F.G.nnbs
+    h = Q*μ - W̄*y
+
 
     pd = NormalCanon.(h,Q)
 
