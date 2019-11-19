@@ -21,7 +21,7 @@ grid of size (m1 * m2). =#
         D = sparse(1:(m-1), 2:m, V, m, m) + sparse(1:(m-m₁),(m₁+1):m, U, m, m)
 
         # make W symmetric
-        D = D + D';
+        D = Symmetric(D,:U)
 
         # Compute the list of neighbors for each node
         nbs =  Array{Int64,1}[]
@@ -34,49 +34,8 @@ grid of size (m1 * m2). =#
         # Put the number of neighbors on the diagonal
         W = -D + spdiagm(0 => nnbs)
 
-        # Compute the conditional independant subsets
-        condIndSubsetIndex = 2*ones(Int64,m₁,m₂)
-        condIndSubsetIndex[1:2:end,1:2:end] .= 1
-        condIndSubsetIndex[2:2:end,2:2:end] .= 1
-
-        condIndSubset = Array[findall(vec(condIndSubsetIndex) .==i) for i=1:2]
-
-#         G = GraphStructure(order,m₁,m₂,m,nbs,W,condIndSubset)
-#         strucmatrix = Dict(:W => W, :CondIndSubset => condIndSubset, :nbs => nbs)
-
 
     elseif order==2
-
-        #= Method described in Paciorek, C. and Liu, Y. 2012. Assessment and
-        statistical modeling of the relationship between remotely-sensed aerosol
-        optical depth and PM2.5. Health Effects Institute Research Report 167
-        (peer-reviewed). =#
-
-        # BUT THERE IS A BUG FOR RECTANGULAR GRIDS
-
-        # v = ones(Int64,m₁)
-        # v[2:end-1] .= 2
-        # W1m1 = spdiagm(-1 => -ones(Int64,m₁-1), 0 => v, 1 => -ones(Int64,m₁-1))
-        #
-        # v = ones(Int64,m₂)
-        # v[2:end-1] .= 2
-        # W1m2 = spdiagm(-1 => -ones(Int64,m₂-1), 0 => v, 1 => -ones(Int64,m₂-1))
-        #
-        # v1 = ones(Int64,m₁)
-        # v1[2:end-1] .= 5
-        # v1[3:end-2] .= 6
-        # v2 = fill(-2,m₁-1)
-        # v2[2:end-1] .= -4
-        # W2m1 = spdiagm(-2 => ones(Int64,m₁-2), -1 => v2, 0 => v1, 1 => v2, 2 => ones(Int64,m₁-2))
-        #
-        # v1 = ones(Int64,m₂)
-        # v1[2:end-1] .= 5
-        # v1[3:end-2] .= 6
-        # v2 = fill(-2,m₂-1)
-        # v2[2:end-1] .= -4
-        # W2m2 = spdiagm(-2 => ones(Int64,m₂-2), -1 => v2, 0 => v1, 1 => v2, 2 => ones(Int64,m₂-2))
-        #
-        # W = kron(spdiagm(0 => ones(Int64,m₂)),W2m1) + 2*kron(W1m1,W1m2) + kron(W2m2,spdiagm(0 => ones(Int64,m₁)));
 
         # Alternative by adding molecules. There should not be missing values in the grid.
 
@@ -137,14 +96,38 @@ grid of size (m1 * m2). =#
             end
         end
 
-
         # Compute the list of neighbors for each node
         nbs =  Array{Int64,1}[]
         for i = 1:m
             push!(nbs,findall(W[:,i] .< 0))
         end
 
-        # Compute the conditional independant subsets
+        nnbs = length.(nbs)
+
+    end
+
+    condIndSubset = get_condindsubsets(m₁,m₂,order)
+
+    W̄ = sparse(diagm(nnbs)) - W
+
+    G = GraphStructure(order,m₁,m₂,m,nbs,nnbs,W,W̄,condIndSubset)
+
+    return G
+
+end
+
+function get_condindsubsets(m₁::Integer,m₂::Integer,order::Integer)
+
+    if order == 1
+
+        condIndSubsetIndex = 2*ones(Int64,m₁,m₂)
+        condIndSubsetIndex[1:2:end,1:2:end] .= 1
+        condIndSubsetIndex[2:2:end,2:2:end] .= 1
+
+        condIndSubset = Array[findall(vec(condIndSubsetIndex) .==i) for i=1:2]
+
+    elseif order == 2
+
         condIndSubsetIndex = zeros(Int64,m₁,m₂)
 
         condIndSubsetIndex[1:3:end,1:4:end] .= 1
@@ -165,13 +148,9 @@ grid of size (m1 * m2). =#
 
         condIndSubset = Array[findall(vec(condIndSubsetIndex) .==i) for i=1:7]
 
-#         strucmatrix = Dict(:W => W, :CondIndSubset => condIndSubset, :nbs => nbs)
-
     end
 
-    G = GraphStructure(order,m₁,m₂,m,nbs,W,condIndSubset)
-
-    return G
+    return condIndSubset
 
 end
 
@@ -241,10 +220,31 @@ function logpdf(F::iGMRF,y::Array{Float64})
         k=3
     end
 
-    z = y .- μ
-    v = W*z
+    z = y - μ
+    v = κ*W*z
     q = z'*v
 
-    log_density =  .5*(m-k)*log(κ) -.5*q
+    lpdf =  .5*(m-k)*log(κ) - .5*q
+
+    return lpdf
+
+end
+
+
+function condlogpdf(F::iGMRF,y::Vector{<:Real})
+
+    μ = F.μ
+    κ = F.κ
+
+    W̄ = F.G.W̄
+
+    h = μ - W̄*y
+    Q = κ * F.G.nnbs
+
+    pd = NormalCanon.(h,Q)
+
+    clpdf = logpdf.(pd,y)
+
+    return clpdf
 
 end

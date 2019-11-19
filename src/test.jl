@@ -5,11 +5,15 @@ m₁ = 15
 m₂ = 15
 m = m₁*m₂
 
-order = 2
+order = 1
 
 G = structure_igmrf(m₁,m₂,order)
-μ_F = GMRF.iGMRF([0.0],300.0,G)
-μ = 10 .+ GMRF.rand(μ_F)
+F = GMRF.iGMRF(zeros(m),30.0,G)
+X = GMRF.rand(F)
+
+
+l = logpdf(F,X)
+l = GMRF.condlogpdf(F,X)
 
 e₁ = ones(Int64,m)
 e₂ = repeat(1:m₁, m₂)
@@ -24,3 +28,14 @@ Q = Array{Float64}(G.W) + e₁*e₁' + e₂*e₂' + e₃*e₃'
 C = cholesky(Q)
 
 C = cholesky(G.W)
+
+W = G.W
+
+W̄ = G.W̄
+
+h = -W̄*X
+J = 300*W
+
+pd = NormalCanon.(h,300*G.nnbs)
+
+l = logpdf.(pd,x)
