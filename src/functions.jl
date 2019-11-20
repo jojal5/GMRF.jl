@@ -239,7 +239,7 @@ function condlogpdf(F::iGMRF,y::Vector{<:Real})
     W̄ = F.G.W̄
 
     Q = κ * F.G.nnbs
-    h = Q*μ - W̄*y
+    h = diagm(Q)*μ - W̄*y
 
 
     pd = NormalCanon.(h,Q)
