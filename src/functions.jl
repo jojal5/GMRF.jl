@@ -156,7 +156,6 @@ end
 
 function rand(F::iGMRF)
 
-    μ = F.μ
     κ = F.κ
     W = F.G.W
     m₁ = F.G.m₁
@@ -207,7 +206,6 @@ end
 
 function logpdf(F::iGMRF,y::Array{Float64})
 
-    μ = F.μ
     κ = F.κ
 
     W = F.G.W
@@ -220,9 +218,8 @@ function logpdf(F::iGMRF,y::Array{Float64})
         k=3
     end
 
-    z = y - μ
-    v = κ*W*z
-    q = z'*v
+    v = κ*W*y
+    q = y'*v
 
     lpdf =  .5*(m-k)*log(κ) - .5*q
 
@@ -233,14 +230,13 @@ end
 
 function condlogpdf(F::iGMRF,y::Vector{<:Real})
 
-    μ = F.μ
     κ = F.κ
 
     W̄ = F.G.W̄
     W = F.G.W
 
     Q = κ * F.G.nnbs
-    h = W*μ - W̄*y
+    h = -W̄*y
 
     pd = NormalCanon.(h,Q)
 

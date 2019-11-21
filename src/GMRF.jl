@@ -17,7 +17,6 @@ struct GraphStructure
 end
 
 struct iGMRF
-    μ::Vector{T} where T<:Real     # Vector of mean parameters
     κ::Real                       # Precision of the field
     G::GraphStructure
 end
