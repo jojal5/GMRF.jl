@@ -227,8 +227,7 @@ function logpdf(F::iGMRF,y::Array{Float64})
 
 end
 
-
-function condlogpdf(F::iGMRF,y::Vector{<:Real})
+function fullconditionals(F::iGMRF,y::Vector{<:Real})
 
     κ = F.κ
 
@@ -238,6 +237,14 @@ function condlogpdf(F::iGMRF,y::Vector{<:Real})
     h = -κ*(W̄*y)
 
     pd = NormalCanon.(h,Q)
+
+    return pd
+
+end
+
+function fullcondlogpdf(F::iGMRF,y::Vector{<:Real})
+
+    pd = fullconditionals(F::iGMRF,y::Vector{<:Real})
 
     clpdf = logpdf.(pd,y)
 
