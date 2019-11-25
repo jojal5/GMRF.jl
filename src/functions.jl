@@ -8,6 +8,8 @@ grid of size (m1 * m2). =#
 
     if order == 1
 
+        rankDeficiency = 1
+
         # 1-off diagonal elements
         v = ones(Int64,m₁)
         v[end] = 0
@@ -36,6 +38,8 @@ grid of size (m1 * m2). =#
 
 
     elseif order==2
+
+        rankDeficiency = 3
 
         # Alternative by adding molecules. There should not be missing values in the grid.
 
@@ -110,7 +114,7 @@ grid of size (m1 * m2). =#
 
     W̄ = W - sparse(diagm(nnbs))
 
-    G = GraphStructure(order,m₁,m₂,m,nbs,nnbs,W,W̄,condIndSubset)
+    G = GraphStructure(rankDeficiency,m₁,m₂,m,nbs,nnbs,W,W̄,condIndSubset)
 
     return G
 
@@ -161,9 +165,8 @@ function rand(F::iGMRF)
     m₁ = F.G.m₁
     m₂ = F.G.m₂
     m = F.G.m
-    order = F.G.order
 
-    if order ==1
+    if F.G.rankDeficiency == 1
 
         e₁ = ones(m,1)
 
@@ -171,7 +174,7 @@ function rand(F::iGMRF)
 
         Q = κ*W + e₁*e₁'
 
-    else
+    elseif F.G.rankDeficiency == 3
 
         e₁ = ones(m)
         e₂ = repeat(1:m₁, m₂)
@@ -210,13 +213,8 @@ function logpdf(F::iGMRF,y::Array{Float64})
 
     W = F.G.W
     m = F.G.m
-    order = F.G.order
 
-    if order==1
-        k=1
-    else
-        k=3
-    end
+    k = F.G.rankDeficiency
 
     v = κ*W*y
     q = y'*v

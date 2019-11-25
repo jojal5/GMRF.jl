@@ -8,12 +8,12 @@ m = m₁*m₂
 order = 1
 
 G = structure_igmrf(m₁,m₂,order)
-F = GMRF.iGMRF(zeros(m),30.0,G)
+F = GMRF.iGMRF(30.0,G)
 X = GMRF.rand(F)
 
 
 l = logpdf(F,X)
-l = GMRF.condlogpdf(F,X)
+l = GMRF.fullcondlogpdf(F,X)
 
 e₁ = ones(Int64,m)
 e₂ = repeat(1:m₁, m₂)

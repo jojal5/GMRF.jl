@@ -5,7 +5,7 @@ using LinearAlgebra, SparseArrays, StatsBase, Distributions
 import Distributions.rand, Distributions.logpdf
 
 struct GraphStructure
-    order::Int               # Order of the field
+    rankDeficiency::Int      # Rank deficiency of the structure matrix W
     m₁::Int                  # Number of rows
     m₂::Int                  # Number of columns
     m::Int                   # Number of nodes
@@ -13,7 +13,7 @@ struct GraphStructure
     nnbs::Vector{Int64}      # Number of neighbors for each node
     W::SparseMatrixCSC{Int64,Int64}       # Structure matrix
     W̄::SparseMatrixCSC{Int64,Int64}       # Structure matrix minus the diagonal
-    condIndSubset::Array{Vector{Int64}} # Conditional independant subsets
+    condIndSubset::Array{Vector{Int64}}   # List of conditional independant subsets
 end
 
 struct iGMRF
