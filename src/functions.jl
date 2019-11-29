@@ -1,5 +1,5 @@
 
-function structure_igmrf(m₁::Integer,m₂::Integer,order::Integer)
+function structure_igmrf(m₁::Integer,m₂::Integer,order::Integer,κ::Real)
 
 #=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
 grid of size (m1 * m2). =#
@@ -112,11 +112,14 @@ grid of size (m1 * m2). =#
 
     condIndSubset = get_condindsubsets(m₁,m₂,order)
 
+
+    G = GridStructure(m, (m₁,m₂), nbs, nnbs, condIndSubset)
+
     W̄ = W - sparse(diagm(nnbs))
 
-    G = GraphStructure(rankDeficiency,m₁,m₂,m,nbs,nnbs,W,W̄,condIndSubset)
+    F = iGMRF(G, rankDeficiency, κ, W, W̄)
 
-    return G
+    return F
 
 end
 
@@ -161,12 +164,12 @@ end
 function rand(F::iGMRF)
 
     κ = F.κ
-    W = F.G.W
-    m₁ = F.G.m₁
-    m₂ = F.G.m₂
+    W = F.W
+    m₁ = F.G.gridSize[1]
+    m₂ = F.G.gridSize[2]
     m = F.G.m
 
-    if F.G.rankDeficiency == 1
+    if F.rankDeficiency == 1
 
         e₁ = ones(m,1)
 
@@ -174,7 +177,7 @@ function rand(F::iGMRF)
 
         Q = κ*W + e₁*e₁'
 
-    elseif F.G.rankDeficiency == 3
+    elseif F.rankDeficiency == 3
 
         e₁ = ones(m)
         e₂ = repeat(1:m₁, m₂)
@@ -211,10 +214,10 @@ function logpdf(F::iGMRF,y::Array{Float64})
 
     κ = F.κ
 
-    W = F.G.W
+    W = F.W
     m = F.G.m
 
-    k = F.G.rankDeficiency
+    k = F.rankDeficiency
 
     v = κ*W*y
     q = y'*v
@@ -229,9 +232,10 @@ function fullconditionals(F::iGMRF,y::Vector{<:Real})
 
     κ = F.κ
 
-    W̄ = F.G.W̄
+    W̄ = F.W̄
+    W = F.W
 
-    Q = κ * F.G.nnbs
+    Q = κ * Array(diag(F.W))
     h = -κ*(W̄*y)
 
     pd = NormalCanon.(h,Q)
