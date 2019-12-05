@@ -161,6 +161,7 @@ function get_condindsubsets(m₁::Integer,m₂::Integer,order::Integer)
 
 end
 
+
 function rand(F::iGMRF)
 
     κ = F.κ
@@ -251,5 +252,26 @@ function fullcondlogpdf(F::iGMRF,y::Vector{<:Real})
     clpdf = logpdf.(pd,y)
 
     return clpdf
+
+end
+
+function getconditional(F::GMRF.iGMRF, B::Vector{<:Int}, x::Vector{<:Real})
+
+    W = F.W
+
+    sort!(B)
+
+    A = setdiff(1:F.G.m, B)
+
+    Waa = W[A,A]
+    Wab = W[A,B]
+
+    h = -Wab*x*F.κ
+
+    J = Array(F.κ*Waa)
+
+    pd = MvNormalCanon(h,J)
+
+    return pd
 
 end
