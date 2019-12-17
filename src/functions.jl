@@ -1,5 +1,5 @@
 
-function structure_igmrf(m₁::Integer,m₂::Integer,order::Integer,κ::Real)
+function gridstructure_igmrf(m₁::Integer,m₂::Integer,order::Integer)
 
 #=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
 grid of size (m1 * m2). =#
@@ -112,14 +112,11 @@ grid of size (m1 * m2). =#
 
     condIndSubset = get_condindsubsets(m₁,m₂,order)
 
-
-    G = GridStructure(m, (m₁,m₂), nbs, nnbs, condIndSubset)
-
     W̄ = W - sparse(diagm(nnbs))
 
-    F = iGMRF(G, rankDeficiency, κ, W, W̄)
+    G = GridStructure(m, (m₁,m₂), nbs, nnbs, condIndSubset,W,W̄)
 
-    return F
+    return G
 
 end
 
@@ -165,7 +162,7 @@ end
 function rand(F::iGMRF)
 
     κ = F.κ
-    W = F.W
+    W = F.G.W
     m₁ = F.G.gridSize[1]
     m₂ = F.G.gridSize[2]
     m = F.G.m
@@ -215,7 +212,7 @@ function logpdf(F::iGMRF,y::Array{Float64})
 
     κ = F.κ
 
-    W = F.W
+    W = F.G.W
     m = F.G.m
 
     k = F.rankDeficiency
@@ -233,10 +230,10 @@ function fullconditionals(F::iGMRF,y::Vector{<:Real})
 
     κ = F.κ
 
-    W̄ = F.W̄
-    W = F.W
+    W̄ = F.G.W̄
+    W = F.G.W
 
-    Q = κ * Array(diag(F.W))
+    Q = κ * Array(diag(F.G.W))
     h = -κ*(W̄*y)
 
     pd = NormalCanon.(h,Q)
@@ -257,7 +254,7 @@ end
 
 function getconditional(F::GMRF.iGMRF, B::Vector{<:Int}, x::Vector{<:Real})
 
-    W = F.W
+    W = F.G.W
 
     sort!(B)
 
