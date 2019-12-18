@@ -20,13 +20,13 @@ grid of size (m1 * m2). =#
         # get the upper triangular part of the matrix
         D = sparse(1:(m-1), 2:m, V, m, m) + sparse(1:(m-m₁),(m₁+1):m, U, m, m)
 
-        # make W symmetric
+        # make D symmetric
         D = D + D'
 
         # Compute the list of neighbors for each node
         nbs = fill(Int[], m)
         for i = 1:m
-            nbs[1] = findall(!iszero, D[:,i])
+            nbs[i] = findall(!iszero, D[:,i])
         end
 
         nnbs = length.(nbs)
