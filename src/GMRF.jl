@@ -23,6 +23,6 @@ end
 import Distributions.rand, Distributions.logpdf
 include("igmrf.jl")
 
-export iGMRF, rand, logpdf, fullcondlogpdf
+export iGMRF, rand, logpdf, fullconditionals, fullcondlogpdf, getconditional
 
 end # module
