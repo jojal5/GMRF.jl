@@ -21,7 +21,7 @@ struct GridStructure
 end
 
 import Distributions.rand, Distributions.logpdf
-include("functions.jl")
+include("igmrf.jl")
 
 export gridstructure_igmrf, rand, logpdf
 
