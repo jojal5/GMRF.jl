@@ -11,7 +11,6 @@ struct GraphStructure
 end
 
 struct GridStructure
-    m::Int64                      # Number fo grid cells
     gridSize::Tuple{Int64,Int64}    # Tuple containing the number of rows and the number of columns
     nbs::Array{Vector{Int64}}   # list of neighbors for each grid cell
     nnbs::Vector{Int64}      # Number of neighbors for each node
