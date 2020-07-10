@@ -115,7 +115,7 @@ grid of size (m1 * m2). =#
 
     W̄ = W - sparse(diagm(nnbs))
 
-    G = GridStructure((m₁,m₂), nbs, nnbs, condIndSubset,W,W̄)
+    G = GridStructure((m₁,m₂), nbs, condIndSubset,W,W̄)
 
     return iGMRF(G, order, κ)
 
