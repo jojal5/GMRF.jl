@@ -23,6 +23,6 @@ end
 import Distributions.rand, Distributions.logpdf
 include("igmrf.jl")
 
-export gridstructure_igmrf, rand, logpdf
+export iGMRF, rand, logpdf, fullcondlogpdf
 
 end # module

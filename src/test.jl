@@ -6,16 +6,14 @@ m₂ = 15
 m = m₁*m₂
 
 order = 1
-G = GMRF.gridstructure_igmrf(m₁,m₂,order)
-F = GMRF.iGMRF(G,1,10)
-X = GMRF.rand(F)
+F = iGMRF(m₁,m₂,order, 10)
+X = rand(F)
 l = logpdf(F,X)
-l = GMRF.fullcondlogpdf(F,X)
+l = fullcondlogpdf(F,X)
 
 
 order = 2
-G = GMRF.gridstructure_igmrf(m₁,m₂,order)
-F = GMRF.iGMRF(G,3,10)
-X = GMRF.rand(F)
+F = iGMRF(m₁,m₂,order, 10)
+X = rand(F)
 l = logpdf(F,X)
-l = GMRF.fullcondlogpdf(F,X)
+l = fullcondlogpdf(F,X)

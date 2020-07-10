@@ -4,7 +4,7 @@ struct iGMRF
     κ::Float64              # Precision of the field
 end
 
-function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Float64)
+function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)
 
 #=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
 grid of size (m1 * m2). =#
@@ -117,7 +117,7 @@ grid of size (m1 * m2). =#
 
     G = GridStructure(m, (m₁,m₂), nbs, nnbs, condIndSubset,W,W̄)
 
-    return iGRMF(G, order, κ)
+    return iGMRF(G, order, κ)
 
 end
 
@@ -177,7 +177,7 @@ function rand(F::iGMRF)
 
         Q = κ*W + e₁*e₁'
 
-    elseif F.rankDeficiency == 3
+    elseif F.rankDeficiency == 2
 
         e₁ = ones(m)
         e₂ = repeat(1:m₁, m₂)
