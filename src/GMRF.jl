@@ -20,12 +20,6 @@ struct GridStructure
     W̄::SparseMatrixCSC{Int64,Int64}       # Structure matrix minus the diagonal
 end
 
-struct iGMRF
-    G::GridStructure
-    rankDeficiency::Int64
-    κ::Float64                       # Precision of the field
-end
-
 import Distributions.rand, Distributions.logpdf
 include("functions.jl")
 

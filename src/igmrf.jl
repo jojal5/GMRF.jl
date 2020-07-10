@@ -1,5 +1,10 @@
+struct iGMRF
+    G::GridStructure
+    rankDeficiency::Int64
+    κ::Float64              # Precision of the field
+end
 
-function gridstructure_igmrf(m₁::Integer,m₂::Integer,order::Integer)
+function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Float64)
 
 #=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
 grid of size (m1 * m2). =#
@@ -106,17 +111,17 @@ grid of size (m1 * m2). =#
 
     end
 
-    condIndSubset = get_condindsubsets(m₁,m₂,order)
+    condIndSubset = condindsubsets(m₁,m₂,order)
 
     W̄ = W - sparse(diagm(nnbs))
 
     G = GridStructure(m, (m₁,m₂), nbs, nnbs, condIndSubset,W,W̄)
 
-    return G
+    return iGRMF(G, order, κ)
 
 end
 
-function get_condindsubsets(m₁::Integer,m₂::Integer,order::Integer)
+function condindsubsets(m₁::Integer,m₂::Integer,order::Integer)
 
     if order == 1
 
@@ -153,6 +158,7 @@ function get_condindsubsets(m₁::Integer,m₂::Integer,order::Integer)
     return condIndSubset
 
 end
+
 
 
 function rand(F::iGMRF)
