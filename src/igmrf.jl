@@ -1,5 +1,10 @@
+struct iGMRF
+    G::GridStructure
+    rankDeficiency::Int64
+    κ::Float64              # Precision of the field
+end
 
-function gridstructure_igmrf(m₁::Integer,m₂::Integer,order::Integer)
+function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
 #=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
 grid of size (m1 * m2). =#
@@ -106,17 +111,17 @@ grid of size (m1 * m2). =#
 
     end
 
-    condIndSubset = get_condindsubsets(m₁,m₂,order)
+    condIndSubset = condindsubsets(m₁,m₂,order)
 
     W̄ = W - sparse(diagm(nnbs))
 
     G = GridStructure(m, (m₁,m₂), nbs, nnbs, condIndSubset,W,W̄)
 
-    return G
+    return iGMRF(G, order, κ)
 
 end
 
-function get_condindsubsets(m₁::Integer,m₂::Integer,order::Integer)
+function condindsubsets(m₁::Integer,m₂::Integer,order::Integer)::Vector{Vector{Integer}}
 
     if order == 1
 
@@ -155,7 +160,8 @@ function get_condindsubsets(m₁::Integer,m₂::Integer,order::Integer)
 end
 
 
-function rand(F::iGMRF)
+
+function rand(F::iGMRF)::Vector{<:Real}
 
     κ = F.κ
     W = F.G.W
@@ -171,7 +177,7 @@ function rand(F::iGMRF)
 
         Q = κ*W + e₁*e₁'
 
-    elseif F.rankDeficiency == 3
+    elseif F.rankDeficiency == 2
 
         e₁ = ones(m)
         e₂ = repeat(1:m₁, m₂)
@@ -204,7 +210,7 @@ function rand(F::iGMRF)
 
 end
 
-function logpdf(F::iGMRF,y::Array{Float64})
+function logpdf(F::iGMRF,y::Array{<:Real})::Real
 
     κ = F.κ
 
@@ -222,7 +228,7 @@ function logpdf(F::iGMRF,y::Array{Float64})
 
 end
 
-function fullconditionals(F::iGMRF,y::Vector{<:Real})
+function fullconditionals(F::iGMRF,y::Vector{<:Real})::Vector{NormalCanon}
 
     κ = F.κ
 
@@ -238,7 +244,7 @@ function fullconditionals(F::iGMRF,y::Vector{<:Real})
 
 end
 
-function fullcondlogpdf(F::iGMRF,y::Vector{<:Real})
+function fullcondlogpdf(F::iGMRF,y::Vector{<:Real})::Vector{<:Real}
 
     pd = fullconditionals(F::iGMRF,y::Vector{<:Real})
 
@@ -248,7 +254,7 @@ function fullcondlogpdf(F::iGMRF,y::Vector{<:Real})
 
 end
 
-function getconditional(F::GMRF.iGMRF, B::Vector{<:Int}, x::Vector{<:Real})
+function getconditional(F::GMRF.iGMRF, B::Vector{<:Integer}, x::Vector{<:Real})::MvNormalCanon
 
     W = F.G.W
 
