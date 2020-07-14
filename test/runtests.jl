@@ -1,5 +1,5 @@
 using GMRF
-using SparseArrays
+using SparseArrays, Random
 using Test
 
 m₁ = 15
@@ -26,6 +26,8 @@ l = logpdf(F,X)
 fc = fullconditionals(F,X)
 l = fullcondlogpdf(F,X)
 fc = getconditional(F, B, X[B])
+
+Random.seed!(12)
 
 @testset "GMRF.jl" begin
     include("graphstructure_test.jl")
