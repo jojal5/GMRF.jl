@@ -1,5 +1,6 @@
 
-using GMRF, Distributions, LinearAlgebra, SparseArrays
+using GMRF
+using Test
 
 m₁ = 15
 m₂ = 15
@@ -25,3 +26,9 @@ l = logpdf(F,X)
 fc = fullconditionals(F,X)
 l = fullcondlogpdf(F,X)
 fc = getconditional(F, B, X[B])
+
+@testset "GMRF.jl" begin
+    include("graphstructure_test.jl")
+    include("gridstructure_test.jl")
+    include("igmrf_test.jl")
+end
