@@ -1,5 +1,5 @@
-
 using GMRF
+using SparseArrays
 using Test
 
 m₁ = 15
