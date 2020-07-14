@@ -17,18 +17,22 @@ end
 
 function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
-    #=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
-    grid of size (m1 * m2). =#
+    # Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
+    # grid of size (m1 * m2).
+
+    @assert order == 1 || order == 2 "the order should be either 1 or 2."
 
     if order == 1
 
         nbs, W = fo_nbs(m₁, m₂)
         condIndSubset = fo_condindsubsets(m₁, m₂)
+        rankdef = 1
 
-    elseif order == 2
+    else
 
         nbs, W = so_nbs(m₁, m₂)
         condIndSubset = so_condindsubsets(m₁, m₂)
+        rankdef = 3
 
     end
 
@@ -36,7 +40,7 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
     G = GridStructure((m₁, m₂), nbs, condIndSubset, W, W̄)
 
-    return iGMRF(G, order, κ)
+    return iGMRF(G, rankdef, κ)
 
 end
 
@@ -178,6 +182,8 @@ end
 
 function rand(F::iGMRF)::Vector{<:Real}
 
+    @assert F.rankDeficiency == 1 || F.rankDeficiency == 3 "The rank deficiency should be either 1 or 3"
+
     κ = F.κ
     W = F.G.W
     m₁ = F.G.gridSize[1]
@@ -192,7 +198,7 @@ function rand(F::iGMRF)::Vector{<:Real}
 
         Q = κ*W + e₁*e₁'
 
-    elseif F.rankDeficiency == 2
+    else
 
         e₁ = ones(m)
         e₂ = repeat(1:m₁, m₂)
