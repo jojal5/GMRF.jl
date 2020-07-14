@@ -115,7 +115,7 @@ grid of size (m1 * m2). =#
 
     W̄ = W - sparse(diagm(nnbs))
 
-    G = GridStructure(m, (m₁,m₂), nbs, nnbs, condIndSubset,W,W̄)
+    G = GridStructure((m₁,m₂), nbs, condIndSubset,W,W̄)
 
     return iGMRF(G, order, κ)
 
@@ -167,7 +167,7 @@ function rand(F::iGMRF)::Vector{<:Real}
     W = F.G.W
     m₁ = F.G.gridSize[1]
     m₂ = F.G.gridSize[2]
-    m = F.G.m
+    m = m₁ * m₂
 
     if F.rankDeficiency == 1
 
@@ -215,7 +215,7 @@ function logpdf(F::iGMRF,y::Array{<:Real})::Real
     κ = F.κ
 
     W = F.G.W
-    m = F.G.m
+    m = F.G.gridSize[1] * F.G.gridSize[2]
 
     k = F.rankDeficiency
 
@@ -260,7 +260,7 @@ function getconditional(F::GMRF.iGMRF, B::Vector{<:Integer}, x::Vector{<:Real}):
 
     sort!(B)
 
-    A = setdiff(1:F.G.m, B)
+    A = setdiff(1:(F.G.gridSize[1] * F.G.gridSize[2]), B)
 
     Waa = W[A,A]
     Wab = W[A,B]
