@@ -4,6 +4,17 @@ struct iGMRF
     κ::Float64              # Precision of the field
 end
 
+function Base.show(io::IO, obj::iGMRF)
+
+    println(io, "iGMRF")
+    println(io, "G :")
+    showGridStructure(io, obj.G, prefix = "\t\t\t")
+    println(io)
+    println(io, "rankDeficiency :\t", obj.rankDeficiency)
+    println(io, "κ :\t\t\t", obj.κ)
+
+end
+
 function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
 #=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
