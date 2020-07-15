@@ -17,162 +17,172 @@ end
 
 function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
-#=Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
-grid of size (m1 * m2). =#
+    # Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
+    # grid of size (m1 * m2).
 
-    m = m₁*m₂
+    @assert order == 1 || order == 2 "the order should be either 1 or 2."
 
     if order == 1
 
-        # 1-off diagonal elements
-        v = ones(Int64,m₁)
-        v[end] = 0
-        V = repeat(v,outer=m₂)
-        pop!(V)
+        nbs, W = fo_nbs(m₁, m₂)
+        condIndSubset = fo_condindsubsets(m₁, m₂)
+        rankdef = 1
 
-        # n-off diagonal elements
-        U = ones(Int64,m₁*(m₂-1))
+    else
 
-        # get the upper triangular part of the matrix
-        D = sparse(1:(m-1), 2:m, V, m, m) + sparse(1:(m-m₁),(m₁+1):m, U, m, m)
+        nbs, W = so_nbs(m₁, m₂)
+        condIndSubset = so_condindsubsets(m₁, m₂)
+        rankdef = 3
 
-        # make D symmetric
-        D = D + D'
+    end
 
-        # Compute the list of neighbors for each node
-        nbs = fill(Int[], m)
-        for i = 1:m
-            nbs[i] = findall(!iszero, D[:,i])
-        end
+    W̄ = W - sparse(diagm(length.(nbs)))
 
-        nnbs = length.(nbs)
+    G = GridStructure((m₁, m₂), nbs, condIndSubset, W, W̄)
 
-        # Put the number of neighbors on the diagonal
-        W = -D + spdiagm(0 => nnbs)
+    return iGMRF(G, rankdef, κ)
 
+end
 
-    elseif order==2
+function fo_nbs(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
 
-        # Alternative by adding molecules. There should not be missing values in the grid.
+    # 1-off diagonal elements
+    v = ones(Int64,m₁)
+    v[end] = 0
+    V = repeat(v,outer=m₂)
+    pop!(V)
 
-        W = spzeros(Int64,m,m)
-        pos = reshape(1:m,m₁,m₂)
+    # n-off diagonal elements
+    U = ones(Int64,m₁*(m₂-1))
 
-        for i=1:m₁
-            for j=1:m₂
+    # get the upper triangular part of the matrix
+    m = m₁ * m₂
+    D = sparse(1:(m-1), 2:m, V, m, m) + sparse(1:(m-m₁),(m₁+1):m, U, m, m)
 
-                S = zeros(Int64,m₁,m₂)
+    # make D symmetric
+    D = D + D'
 
-                if (i-2>0)
-                   S[i-2:i,j] =  S[i-2:i,j] + [1, -2, 1]
-                end
+    # Compute the list of neighbors for each node
+    nbs = fill(Int[], m)
+    for i = 1:m
+        nbs[i] = findall(!iszero, D[:,i])
+    end
 
-                if (i+2<=m₁)
-                   S[i:i+2,j] =  S[i:i+2,j] + [1, -2, 1]
-                end
+    # Put the number of neighbors on the diagonal
+    W = -D + spdiagm(0 => length.(nbs))
 
-                if (j-2>0)
-                   S[i,j-2:j] =  S[i,j-2:j] + [1,-2, 1]
-                end
+    return (nbs, W)
 
-                if (j+2<=m₂)
-                   S[i,j:j+2] =  S[i,j:j+2] + [1,-2, 1]
-                end
+end
 
+function so_nbs(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
+    # Alternative by adding molecules. There should not be missing values in the grid.
+    m = m₁ * m₂
+    W = spzeros(Int64,m,m)
+    pos = reshape(1:m,m₁,m₂)
 
+    for i=1:m₁
+        for j=1:m₂
 
-                if (i-1>0) && (i+1<=m₁)
-                    S[i-1:i+1,j] = S[i-1:i+1,j] + [-2, 4, -2]
-                end
+            S = zeros(Int64,m₁,m₂)
 
-                if (j-1>0) && (j+1<=m₂)
-                    S[i,j-1:j+1] = S[i,j-1:j+1] + [-2, 4, -2]
-                end
-
-
-
-                if (i-1>0) && (j+1<=m₂)
-                    S[i-1:i,j:j+1] = S[i-1:i,j:j+1] + [-2 2; 2 -2]
-                end
-
-                if (i+1<=m₁) && (j+1<=m₂)
-                    S[i:i+1,j:j+1] = S[i:i+1,j:j+1] + [2 -2; -2 2]
-                end
-
-                if (i-1>0) && (j-1>0)
-                    S[i-1:i,j-1:j] = S[i-1:i,j-1:j] + [2 -2; -2 2]
-                end
-
-                if (i+1<=m₁) && (j-1>0)
-                    S[i:i+1,j-1:j] = S[i:i+1,j-1:j] + [-2 2; 2 -2]
-                end
-
-                W[:,pos[i,j]] = S[:]
-
+            if (i-2>0)
+               S[i-2:i,j] =  S[i-2:i,j] + [1, -2, 1]
             end
+
+            if (i+2<=m₁)
+               S[i:i+2,j] =  S[i:i+2,j] + [1, -2, 1]
+            end
+
+            if (j-2>0)
+               S[i,j-2:j] =  S[i,j-2:j] + [1,-2, 1]
+            end
+
+            if (j+2<=m₂)
+               S[i,j:j+2] =  S[i,j:j+2] + [1,-2, 1]
+            end
+
+
+
+            if (i-1>0) && (i+1<=m₁)
+                S[i-1:i+1,j] = S[i-1:i+1,j] + [-2, 4, -2]
+            end
+
+            if (j-1>0) && (j+1<=m₂)
+                S[i,j-1:j+1] = S[i,j-1:j+1] + [-2, 4, -2]
+            end
+
+
+
+            if (i-1>0) && (j+1<=m₂)
+                S[i-1:i,j:j+1] = S[i-1:i,j:j+1] + [-2 2; 2 -2]
+            end
+
+            if (i+1<=m₁) && (j+1<=m₂)
+                S[i:i+1,j:j+1] = S[i:i+1,j:j+1] + [2 -2; -2 2]
+            end
+
+            if (i-1>0) && (j-1>0)
+                S[i-1:i,j-1:j] = S[i-1:i,j-1:j] + [2 -2; -2 2]
+            end
+
+            if (i+1<=m₁) && (j-1>0)
+                S[i:i+1,j-1:j] = S[i:i+1,j-1:j] + [-2 2; 2 -2]
+            end
+
+            W[:,pos[i,j]] = S[:]
+
         end
-
-        # Compute the list of neighbors for each node
-        nbs =  Array{Int64,1}[]
-        for i = 1:m
-            push!(nbs,findall(W[:,i] .< 0))
-        end
-
-        nnbs = length.(nbs)
-
     end
 
-    condIndSubset = condindsubsets(m₁,m₂,order)
+    # Compute the list of neighbors for each node
+    nbs =  Array{Int64,1}[]
+    for i = 1:m
+        push!(nbs,findall(W[:,i] .< 0))
+    end
 
-    W̄ = W - sparse(diagm(nnbs))
-
-    G = GridStructure((m₁,m₂), nbs, condIndSubset,W,W̄)
-
-    return iGMRF(G, order, κ)
+    return (nbs, W)
 
 end
 
-function condindsubsets(m₁::Integer,m₂::Integer,order::Integer)::Vector{Vector{Integer}}
+function fo_condindsubsets(m₁::Integer,m₂::Integer)::Vector{Vector{Integer}}
 
-    if order == 1
 
-        condIndSubsetIndex = 2*ones(Int64,m₁,m₂)
-        condIndSubsetIndex[1:2:end,1:2:end] .= 1
-        condIndSubsetIndex[2:2:end,2:2:end] .= 1
+    condIndSubsetIndex = 2*ones(Int64,m₁,m₂)
+    condIndSubsetIndex[1:2:end,1:2:end] .= 1
+    condIndSubsetIndex[2:2:end,2:2:end] .= 1
 
-        condIndSubset = Array[findall(vec(condIndSubsetIndex) .==i) for i=1:2]
-
-    elseif order == 2
-
-        condIndSubsetIndex = zeros(Int64,m₁,m₂)
-
-        condIndSubsetIndex[1:3:end,1:4:end] .= 1
-        condIndSubsetIndex[2:3:end,3:4:end] .= 1
-
-        condIndSubsetIndex[1:3:end,2:4:end] .= 2
-        condIndSubsetIndex[2:3:end,4:4:end] .= 2
-
-        condIndSubsetIndex[1:3:end,3:4:end] .= 3
-        condIndSubsetIndex[2:3:end,1:4:end] .= 3
-
-        condIndSubsetIndex[1:3:end,4:4:end] .= 4
-        condIndSubsetIndex[2:3:end,2:4:end] .= 4
-
-        condIndSubsetIndex[3:3:end,1:3:end] .= 5
-        condIndSubsetIndex[3:3:end,2:3:end] .= 6
-        condIndSubsetIndex[3:3:end,3:3:end] .= 7
-
-        condIndSubset = Array[findall(vec(condIndSubsetIndex) .==i) for i=1:7]
-
-    end
-
-    return condIndSubset
+    return Array[findall(vec(condIndSubsetIndex) .==i) for i=1:2]
 
 end
 
+function so_condindsubsets(m₁::Integer,m₂::Integer)::Vector{Vector{Integer}}
 
+    condIndSubsetIndex = zeros(Int64,m₁,m₂)
+
+    condIndSubsetIndex[1:3:end,1:4:end] .= 1
+    condIndSubsetIndex[2:3:end,3:4:end] .= 1
+
+    condIndSubsetIndex[1:3:end,2:4:end] .= 2
+    condIndSubsetIndex[2:3:end,4:4:end] .= 2
+
+    condIndSubsetIndex[1:3:end,3:4:end] .= 3
+    condIndSubsetIndex[2:3:end,1:4:end] .= 3
+
+    condIndSubsetIndex[1:3:end,4:4:end] .= 4
+    condIndSubsetIndex[2:3:end,2:4:end] .= 4
+
+    condIndSubsetIndex[3:3:end,1:3:end] .= 5
+    condIndSubsetIndex[3:3:end,2:3:end] .= 6
+    condIndSubsetIndex[3:3:end,3:3:end] .= 7
+
+    return Array[findall(vec(condIndSubsetIndex) .==i) for i=1:7]
+
+end
 
 function rand(F::iGMRF)::Vector{<:Real}
+
+    @assert F.rankDeficiency == 1 || F.rankDeficiency == 3 "The rank deficiency should be either 1 or 3"
 
     κ = F.κ
     W = F.G.W
@@ -188,7 +198,7 @@ function rand(F::iGMRF)::Vector{<:Real}
 
         Q = κ*W + e₁*e₁'
 
-    elseif F.rankDeficiency == 2
+    else
 
         e₁ = ones(m)
         e₂ = repeat(1:m₁, m₂)
