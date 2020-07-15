@@ -145,7 +145,7 @@ function so_nbs(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, Spar
 
 end
 
-function fo_condindsubsets(m₁::Integer,m₂::Integer)::Vector{Vector{Integer}}
+function fo_condindsubsets(m₁::Integer, m₂::Integer)::Vector{Vector{Integer}}
 
 
     condIndSubsetIndex = 2*ones(Int64,m₁,m₂)
@@ -156,7 +156,7 @@ function fo_condindsubsets(m₁::Integer,m₂::Integer)::Vector{Vector{Integer}}
 
 end
 
-function so_condindsubsets(m₁::Integer,m₂::Integer)::Vector{Vector{Integer}}
+function so_condindsubsets(m₁::Integer, m₂::Integer)::Vector{Vector{Integer}}
 
     condIndSubsetIndex = zeros(Int64,m₁,m₂)
 
@@ -231,7 +231,7 @@ function rand(F::iGMRF)::Vector{<:Real}
 
 end
 
-function logpdf(F::iGMRF,y::Array{<:Real})::Real
+function logpdf(F::iGMRF, y::Array{<:Real})::Real
 
     κ = F.κ
 
@@ -249,7 +249,7 @@ function logpdf(F::iGMRF,y::Array{<:Real})::Real
 
 end
 
-function fullconditionals(F::iGMRF,y::Vector{<:Real})::Vector{NormalCanon}
+function fullconditionals(F::iGMRF, y::Vector{<:Real})::Vector{NormalCanon}
 
     κ = F.κ
 
@@ -265,7 +265,7 @@ function fullconditionals(F::iGMRF,y::Vector{<:Real})::Vector{NormalCanon}
 
 end
 
-function fullcondlogpdf(F::iGMRF,y::Vector{<:Real})::Vector{<:Real}
+function fullcondlogpdf(F::iGMRF, y::Vector{<:Real})::Vector{<:Real}
 
     pd = fullconditionals(F::iGMRF,y::Vector{<:Real})
 
