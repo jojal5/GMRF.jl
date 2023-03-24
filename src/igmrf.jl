@@ -36,7 +36,7 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
     end
 
-    W̄ = W - sparse(diagm(length.(nbs)))
+    W̄ = W - spdiagm(length.(nbs))
 
     G = GridStructure((m₁, m₂), nbs, condIndSubset, W, W̄)
 
