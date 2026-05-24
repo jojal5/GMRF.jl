@@ -30,7 +30,7 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
     else
 
-        nbs, W = so_nbs(m₁, m₂)
+        nbs, W = second_order_lattice_neighbors(m₁, m₂)
         condIndSubset = so_condindsubsets(m₁, m₂)
         rankdef = 3
 

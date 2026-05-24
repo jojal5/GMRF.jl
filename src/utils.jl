@@ -1,7 +1,7 @@
 
 
 """
-    so_nbs(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
+    second_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
 
 Compute the second order neighbors of each point of a regular lattice of size `(m₁, m₂)`.
 
@@ -11,7 +11,7 @@ Returns a tuple the tuple `(nbs, W)` where
 - nbs is the list of neighbors for each point
 - W is the corresponding structure matrix for the lattice
 """
-function so_nbs(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
+function second_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
     # Alternative by adding molecules. There should not be missing values in the grid.
     m = m₁ * m₂
     W = spzeros(Int64,m,m)
