@@ -30,15 +30,15 @@
 
     end
 
-    @testset "fo_nbs(m₁, m₂)" begin
+    @testset "first_order_lattice_neighbors(m₁, m₂)" begin
         # Grid 1 x 1
-        nbs, W = GMRF.fo_nbs(1, 1)
+        nbs, W = GMRF.first_order_lattice_neighbors(1, 1)
 
         @test nbs == [[]]
         # TODO : Test W
 
         # Grid 2 x 2
-        nbs, W = GMRF.fo_nbs(2, 2)
+        nbs, W = GMRF.first_order_lattice_neighbors(2, 2)
 
         @test nbs == [[2, 3], [1, 4], [1, 4], [2, 3]]
         # TODO : Test W
