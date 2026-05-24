@@ -51,8 +51,8 @@ function rand(F::iGMRF)::Vector{<:Real}
 
     κ = F.κ
     W = F.G.W
-    m₁ = F.G.gridSize[1]
-    m₂ = F.G.gridSize[2]
+    m₁ = F.G.grid_size[1]
+    m₂ = F.G.grid_size[2]
     m = m₁ * m₂
 
     if F.rankDeficiency == 1
@@ -101,7 +101,7 @@ function logpdf(F::iGMRF, y::Array{<:Real})::Real
     κ = F.κ
 
     W = F.G.W
-    m = F.G.gridSize[1] * F.G.gridSize[2]
+    m = F.G.grid_size[1] * F.G.grid_size[2]
 
     k = F.rankDeficiency
 
@@ -146,7 +146,7 @@ function getconditional(F::GMRF.iGMRF, B::Vector{<:Integer}, x::Vector{<:Real}):
 
     sort!(B)
 
-    A = setdiff(1:(F.G.gridSize[1] * F.G.gridSize[2]), B)
+    A = setdiff(1:(F.G.grid_size[1] * F.G.grid_size[2]), B)
 
     Waa = W[A,A]
     Wab = W[A,B]

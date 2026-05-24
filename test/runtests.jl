@@ -1,5 +1,5 @@
 using GMRF
-using SparseArrays, Random
+using LinearAlgebra, SparseArrays, Random
 using Test
 
 m₁ = 15

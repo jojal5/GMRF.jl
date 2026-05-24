@@ -15,7 +15,7 @@
         # Simple grid of order 1
         igmrf = iGMRF(1, 1, 1, 1.0)
 
-        @test igmrf.G.gridSize == (1, 1)
+        @test igmrf.G.grid_size == (1, 1)
         @test igmrf.rankDeficiency == 1
         @test igmrf.κ ≈ 1.0
         # TODO : Test that W̄ was derived from W
@@ -23,7 +23,7 @@
         # Simple grid of order 2
         igmrf = iGMRF(1, 1, 2, 1.0)
 
-        @test igmrf.G.gridSize == (1, 1)
+        @test igmrf.G.grid_size == (1, 1)
         @test igmrf.rankDeficiency == 3
         @test igmrf.κ ≈ 1.0
         # TODO : Test that W̄ was derived from W

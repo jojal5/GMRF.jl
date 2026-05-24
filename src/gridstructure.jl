@@ -1,16 +1,16 @@
 struct GridStructure
-    gridSize::Tuple{Int64,Int64}    # Tuple containing the number of rows and the number of columns
-    nbs::Vector{Vector{Int64}}   # list of neighbors for each grid cell
-    condIndSubset::Vector{Vector{Int64}} # Conditional independant subsets of grid cell
-    W::SparseMatrixCSC{Int64,Int64}       # Structure matrix
-    W̄::SparseMatrixCSC{Int64,Int64}       # Structure matrix minus the diagonal
+    grid_size::Tuple{Int64,Int64}             # Tuple containing the number of rows and the number of columns
+    neighbors::Vector{Vector{Int64}}          # list of neighbors for each grid cell
+    cond_ind_subset::Vector{Vector{Int64}}    # Conditional independant subsets of grid cell
+    W::SparseMatrixCSC{Int64,Int64}           # Structure matrix
+    W̄::SparseMatrixCSC{Int64,Int64}           # Structure matrix minus the diagonal
 end
 
 function showGridStructure(io::IO, obj::GridStructure; prefix::String = "")
 
     println(io, prefix, "GridStructure")
-    println(io, prefix, "gridSize :\t", obj.gridSize)
-    println(io, prefix, "nbs :\t\t", typeof(obj.nbs), "[", length(obj.nbs), "]")
+    println(io, prefix, "grid size :\t", obj.grid_size)
+    println(io, prefix, "neighbors :\t\t", typeof(obj.neighbors), "[", length(obj.neighbors), "]")
 
 end
 
@@ -19,6 +19,35 @@ function Base.show(io::IO, obj::GridStructure)
     showGridStructure(io, obj)
 
 end
+
+"""
+    GridStructure(m₁::Integer, m₂::Integer; order::Integer)
+
+Construct the neighborhood structure of a regular two-dimensional lattice of size
+`(m₁, m₂)`.
+
+The keyword argument `order` specifies the neighborhood structure. Use `order = 1`
+for first-order neighbors and `order = 2` for second-order neighbors.
+"""
+function GridStructure(m₁::Integer, m₂::Integer; order::Integer)::GridStructure
+
+    m₁ > 0 || throw(ArgumentError("m₁ must be positive."))
+    m₂ > 0 || throw(ArgumentError("m₂ must be positive."))
+    order in (1, 2) || throw(ArgumentError("order must be either 1 or 2."))
+
+    if order == 1
+        nbs, W = first_order_lattice_neighbors(m₁, m₂)
+        condIndSubset = first_order_conditional_independent_subsets(m₁, m₂)
+    else
+        nbs, W = second_order_lattice_neighbors(m₁, m₂)
+        condIndSubset = second_order_conditional_independent_subsets(m₁, m₂)
+    end
+
+    W̄ = W - spdiagm(0 => diag(W))
+
+    return GridStructure((m₁, m₂), nbs, condIndSubset, W, W̄)
+end
+
 
 """
     first_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
