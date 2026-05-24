@@ -64,6 +64,15 @@
         end
     end
 
+    @testset "first_order_conditional_independent_subsets" begin
+        subsets = GMRF.first_order_conditional_independent_subsets(3, 3)
+
+        @test subsets == [
+            [1, 3, 5, 7, 9],
+            [2, 4, 6, 8],
+        ]
+    end
+
     @testset "second_order_lattice_neighbors" begin
         import GMRF.second_order_lattice_neighbors
 
@@ -122,16 +131,16 @@
             ]
 
             W_expected = sparse([
-                4 -4  1 -4  2  0  1  0  0
-                -4  9 -4  2 -6  2  0  1  0
-                1 -4  4  0  2 -4  0  0  1
-                -4  2  0  9 -6  1 -4  2  0
-                2 -6  2 -6 16 -6  2 -6  2
-                0  2 -4  1 -6  9  0  2 -4
-                1  0  0 -4  2  0  4 -4  1
-                0  1  0  2 -6  2 -4  9 -4
-                0  0  1  0  2 -4  1 -4  4
-                ])
+                4 -4 1 -4 2 0 1 0 0
+                -4 9 -4 2 -6 2 0 1 0
+                1 -4 4 0 2 -4 0 0 1
+                -4 2 0 9 -6 1 -4 2 0
+                2 -6 2 -6 16 -6 2 -6 2
+                0 2 -4 1 -6 9 0 2 -4
+                1 0 0 -4 2 0 4 -4 1
+                0 1 0 2 -6 2 -4 9 -4
+                0 0 1 0 2 -4 1 -4 4
+            ])
 
             @test W == W_expected
         end
