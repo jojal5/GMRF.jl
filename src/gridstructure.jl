@@ -72,6 +72,29 @@ function first_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vect
 end
 
 """
+    first_order_conditional_independent_subsets(m₁::Integer, m₂::Integer)::Vector{Vector{Int64}}
+
+Compute the first-order conditional independent subsets of a regular two-dimensional lattice of size `(m₁, m₂)`.
+
+# Details
+
+The lattice contains `m₁ * m₂` nodes, indexed column-wise. The function partitions
+the nodes into two subsets such that no two first-order neighbors belong to the
+same subset.
+"""
+function first_order_conditional_independent_subsets(m₁::Integer, m₂::Integer)::Vector{Vector{Int64}}
+
+    m₁ > 0 || throw(ArgumentError("m₁ must be positive."))
+    m₂ > 0 || throw(ArgumentError("m₂ must be positive."))
+
+    cond_ind_subset_index = 2 * ones(Int64, m₁, m₂)
+    cond_ind_subset_index[1:2:end, 1:2:end] .= 1
+    cond_ind_subset_index[2:2:end, 2:2:end] .= 1
+
+    return [findall(vec(cond_ind_subset_index) .== i) for i in 1:2]
+end
+
+"""
     second_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
 
 Compute the second-order neighbors of each node in a regular two-dimensional lattice of size `(m₁, m₂)`.

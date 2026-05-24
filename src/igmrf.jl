@@ -47,16 +47,6 @@ end
 
 
 
-function fo_condindsubsets(m₁::Integer, m₂::Integer)::Vector{Vector{Integer}}
-
-
-    condIndSubsetIndex = 2*ones(Int64,m₁,m₂)
-    condIndSubsetIndex[1:2:end,1:2:end] .= 1
-    condIndSubsetIndex[2:2:end,2:2:end] .= 1
-
-    return Array[findall(vec(condIndSubsetIndex) .==i) for i=1:2]
-
-end
 
 function so_condindsubsets(m₁::Integer, m₂::Integer)::Vector{Vector{Integer}}
 
