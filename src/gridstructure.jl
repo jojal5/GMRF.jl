@@ -174,3 +174,38 @@ function second_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vec
 
     return nbs, W
 end
+
+"""
+    second_order_conditional_independent_subsets(m₁::Integer, m₂::Integer)::Vector{Vector{Int64}}
+
+Compute a partition of the nodes of a regular two-dimensional lattice of size `(m₁, m₂)`
+into conditional independent subsets for a second-order neighborhood structure.
+
+The lattice contains `m₁ * m₂` nodes, indexed column-wise. The function returns seven
+subsets of node indices.
+"""
+function second_order_conditional_independent_subsets(m₁::Integer, m₂::Integer)::Vector{Vector{Int64}}
+
+    m₁ > 0 || throw(ArgumentError("m₁ must be positive."))
+    m₂ > 0 || throw(ArgumentError("m₂ must be positive."))
+
+    cond_ind_subset_index = zeros(Int64, m₁, m₂)
+
+    cond_ind_subset_index[1:3:end, 1:4:end] .= 1
+    cond_ind_subset_index[2:3:end, 3:4:end] .= 1
+
+    cond_ind_subset_index[1:3:end, 2:4:end] .= 2
+    cond_ind_subset_index[2:3:end, 4:4:end] .= 2
+
+    cond_ind_subset_index[1:3:end, 3:4:end] .= 3
+    cond_ind_subset_index[2:3:end, 1:4:end] .= 3
+
+    cond_ind_subset_index[1:3:end, 4:4:end] .= 4
+    cond_ind_subset_index[2:3:end, 2:4:end] .= 4
+
+    cond_ind_subset_index[3:3:end, 1:3:end] .= 5
+    cond_ind_subset_index[3:3:end, 2:3:end] .= 6
+    cond_ind_subset_index[3:3:end, 3:3:end] .= 7
+
+    return [findall(vec(cond_ind_subset_index) .== i) for i in 1:7]
+end

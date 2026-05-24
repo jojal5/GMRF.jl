@@ -153,4 +153,18 @@
         end
     end
 
+    @testset "second_order_conditional_independent_subsets" begin
+        subsets = GMRF.second_order_conditional_independent_subsets(3, 3)
+
+        @test subsets == [
+            [1, 8],
+            [4],
+            [2, 7],
+            [5],
+            [3],
+            [6],
+            [9],
+        ]
+    end
+
 end

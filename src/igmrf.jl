@@ -31,7 +31,7 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
     else
 
         nbs, W = second_order_lattice_neighbors(m₁, m₂)
-        condIndSubset = so_condindsubsets(m₁, m₂)
+        condIndSubset = second_order_conditional_independent_subsets(m₁, m₂)
         rankdef = 3
 
     end
@@ -44,33 +44,6 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
 
 end
 
-
-
-
-
-function so_condindsubsets(m₁::Integer, m₂::Integer)::Vector{Vector{Integer}}
-
-    condIndSubsetIndex = zeros(Int64,m₁,m₂)
-
-    condIndSubsetIndex[1:3:end,1:4:end] .= 1
-    condIndSubsetIndex[2:3:end,3:4:end] .= 1
-
-    condIndSubsetIndex[1:3:end,2:4:end] .= 2
-    condIndSubsetIndex[2:3:end,4:4:end] .= 2
-
-    condIndSubsetIndex[1:3:end,3:4:end] .= 3
-    condIndSubsetIndex[2:3:end,1:4:end] .= 3
-
-    condIndSubsetIndex[1:3:end,4:4:end] .= 4
-    condIndSubsetIndex[2:3:end,2:4:end] .= 4
-
-    condIndSubsetIndex[3:3:end,1:3:end] .= 5
-    condIndSubsetIndex[3:3:end,2:3:end] .= 6
-    condIndSubsetIndex[3:3:end,3:3:end] .= 7
-
-    return Array[findall(vec(condIndSubsetIndex) .==i) for i=1:7]
-
-end
 
 function rand(F::iGMRF)::Vector{<:Real}
 
