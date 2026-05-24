@@ -25,7 +25,7 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
     if order == 1
 
         nbs, W = first_order_lattice_neighbors(m₁, m₂)
-        condIndSubset = fo_condindsubsets(m₁, m₂)
+        condIndSubset = first_order_conditional_independent_subsets(m₁, m₂)
         rankdef = 1
 
     else

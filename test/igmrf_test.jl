@@ -60,14 +60,14 @@
 
     end
 
-    @testset "fo_condindsubsets(m₁, m₂)" begin
+    @testset "first_order_conditional_independent_subsets(m₁, m₂)" begin
         # Grid 1 x 1
-        cond = GMRF.fo_condindsubsets(1, 1)
+        cond = GMRF.first_order_conditional_independent_subsets(1, 1)
 
         # TODO : Test cond
 
         # Grid 2 x 2
-        cond = GMRF.fo_condindsubsets(2, 2)
+        cond = GMRF.first_order_conditional_independent_subsets(2, 2)
 
         # TODO : Test cond
 
