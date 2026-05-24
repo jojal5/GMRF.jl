@@ -10,7 +10,7 @@
 
     @testset "iGMRF(m₁, m₂, order, κ)" begin
         # order not 1 or 2 throws
-        @test_throws AssertionError iGMRF(1, 1, 0, 1.0)
+        @test_throws ArgumentError iGMRF(1, 1, 0, 1.0)
 
         # Simple grid of order 1
         igmrf = iGMRF(1, 1, 1, 1.0)

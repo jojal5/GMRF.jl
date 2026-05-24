@@ -16,29 +16,15 @@ function Base.show(io::IO, obj::iGMRF)
 end
 
 function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
+    order in (1, 2) || throw(ArgumentError("order must be either 1 or 2."))
 
-    # Gives the adjacency matrix W for the iGMRF of order 1 or 2 on the regular
-    # grid of size (m1 * m2).
+    G = GridStructure(m₁, m₂, order=order)
 
-    @assert order == 1 || order == 2 "the order should be either 1 or 2."
-
-    if order == 1
-
-        nbs, W = first_order_lattice_neighbors(m₁, m₂)
-        condIndSubset = first_order_conditional_independent_subsets(m₁, m₂)
-        rankdef = 1
-
+    if order==1
+        rankdef=1
     else
-
-        nbs, W = second_order_lattice_neighbors(m₁, m₂)
-        condIndSubset = second_order_conditional_independent_subsets(m₁, m₂)
         rankdef = 3
-
-    end
-
-    W̄ = W - spdiagm(length.(nbs))
-
-    G = GridStructure((m₁, m₂), nbs, condIndSubset, W, W̄)
+    end 
 
     return iGMRF(G, rankdef, κ)
 

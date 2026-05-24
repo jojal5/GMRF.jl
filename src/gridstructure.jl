@@ -10,7 +10,7 @@ function showGridStructure(io::IO, obj::GridStructure; prefix::String = "")
 
     println(io, prefix, "GridStructure")
     println(io, prefix, "grid size :\t", obj.grid_size)
-    println(io, prefix, "neighbors :\t\t", typeof(obj.neighbors), "[", length(obj.neighbors), "]")
+    println(io, prefix, "neighbors :\t", typeof(obj.neighbors), "[", length(obj.neighbors), "]")
 
 end
 
