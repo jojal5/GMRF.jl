@@ -19,3 +19,54 @@ function Base.show(io::IO, obj::GridStructure)
     showGridStructure(io, obj)
 
 end
+
+"""
+    first_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
+
+Compute the first-order neighbors of each node in a regular two-dimensional lattice of size `(m₁, m₂)`.
+
+# Details
+
+The lattice contains `m₁ * m₂` nodes, indexed column-wise. Two nodes are first-order
+neighbors if they are horizontally or vertically adjacent on the lattice.
+
+Returns a tuple `(nbs, W)`, where:
+
+- `nbs` is the list of first-order neighbors for each node;
+- `W` is the corresponding intrinsic CAR precision matrix, with `W[i, i]`
+  equal to the number of neighbors of node `i` and `W[i, j] = -1` when
+  nodes `i` and `j` are neighbors.
+"""
+function first_order_lattice_neighbors(m₁::Integer, m₂::Integer)::Tuple{Vector{Vector{Int64}}, SparseMatrixCSC{Int64,Int64}}
+
+    m₁ > 0 || throw(ArgumentError("m₁ must be positive."))
+    m₂ > 0 || throw(ArgumentError("m₂ must be positive."))
+
+    # 1-off diagonal elements
+    v = ones(Int64, m₁)
+    v[end] = 0
+    V = repeat(v, outer = m₂)
+    pop!(V)
+
+    # m₁-off diagonal elements
+    U = ones(Int64, m₁ * (m₂ - 1))
+
+    # get the upper triangular part of the matrix
+    m = m₁ * m₂
+    D = sparse(1:(m - 1), 2:m, V, m, m) +
+        sparse(1:(m - m₁), (m₁ + 1):m, U, m, m)
+
+    # make D symmetric
+    D = D + D'
+
+    # compute the list of neighbors for each node
+    nbs = Vector{Vector{Int64}}(undef, m)
+    for i in 1:m
+        nbs[i] = findall(!iszero, D[:, i])
+    end
+
+    # put the number of neighbors on the diagonal
+    W = -D + spdiagm(0 => length.(nbs))
+
+    return nbs, W
+end
