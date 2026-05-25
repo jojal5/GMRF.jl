@@ -143,32 +143,76 @@ function logpdf(F::GMRF.iGMRF, y::AbstractVector{<:Real})::Real
 end
 
 
+"""
+    full_conditional_canonical_parameters(F::iGMRF, y::AbstractVector{<:Real})
 
+Compute the canonical parameters of the full conditional distributions of the
+intrinsic Gaussian Markov random field `F` at all grid cells, given the current
+field values `y`.
 
-function fullconditionals(F::iGMRF, y::Vector{<:Real})::Vector{NormalCanon}
+Returns a tuple `(h, Q)`, where `h[i]` is the canonical parameter and `Q[i]` is
+the precision of the full conditional distribution at grid cell `i`.
+"""
+function full_conditional_canonical_parameters(
+    F::iGMRF,
+    y::AbstractVector{<:Real})
 
     κ = F.κ
 
-    W̄ = F.G.W̄
     W = F.G.W
+    W̄ = F.G.W̄
 
-    Q = κ * Array(diag(F.G.W))
-    h = -κ*(W̄*y)
+    length(y) == size(W, 1) ||
+        throw(DimensionMismatch("length(y) must be equal to the number of grid cells."))
 
-    pd = NormalCanon.(h,Q)
+    h = -κ .* (W̄ * y)
 
-    return pd
+    Q = Vector(diag(W))
+    Q .*= κ
 
+    return h, Q
+end
+
+"""
+    full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}
+
+Compute the full conditional distributions of the intrinsic Gaussian Markov
+random field `F` at all grid cells, given the current field values `y`.
+
+The distributions are returned in canonical normal form.
+"""
+function full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}
+
+    h, Q = full_conditional_canonical_parameters(F, y)
+
+    return NormalCanon.(h, Q)
 end
 
 function fullcondlogpdf(F::iGMRF, y::Vector{<:Real})::Vector{<:Real}
 
-    pd = fullconditionals(F::iGMRF,y::Vector{<:Real})
+    pd = full_conditionals(F::iGMRF,y::Vector{<:Real})
 
     clpdf = logpdf.(pd,y)
 
     return clpdf
 
+end
+
+"""
+    full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{Float64}
+
+Compute the log-density of each grid-cell value under its full conditional
+distribution.
+
+For each grid cell `i`, this returns `log f(y[i] | y[-i])`, where the full
+conditional distribution is represented in canonical normal form with canonical
+parameter `h[i]` and precision `Q[i]`.
+"""
+function full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{Float64}
+
+    h, Q = full_conditional_canonical_parameters(F, y)
+
+    return @. h * y - 0.5 * Q * y^2 - 0.5 * log(2π) + 0.5 * log(Q) - 0.5 * h^2 / Q
 end
 
 function getconditional(F::GMRF.iGMRF, B::Vector{<:Integer}, x::Vector{<:Real})::MvNormalCanon
