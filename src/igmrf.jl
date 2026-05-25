@@ -83,38 +83,34 @@ function Base.show(io::IO, obj::iGMRF)
     println(io, " precision = ", obj.precision)
 end
 
+"""
+    constraint_matrix(F::iGMRF)::Matrix{Float64}
 
+Construct the constraint matrix associated with the intrinsic Gaussian Markov
+random field `F`.
 
-# """
-#     constraint_matrix(F::iGMRF)::Matrix{Float64}
+For a first-order iGMRF, the constraint matrix contains the constant vector. For
+a second-order iGMRF, it contains the constant vector and the two coordinate
+vectors.
+"""
+function constraint_matrix(F::iGMRF)::Matrix{Float64}
 
-# Construct the constraint matrix associated with the intrinsic Gaussian Markov
-# random field `F`.
+    rank_deficiency = F.order == 1 ? 1 : 3
 
-# For a first-order iGMRF, the constraint matrix contains the constant vector. For
-# a second-order iGMRF, it contains the constant vector and the two coordinate
-# vectors.
-# """
-# function constraint_matrix(F::iGMRF)::Matrix{Float64}
+    m₁, m₂ = F.G.m₁, F.G.m₂
+    m = m₁ * m₂
 
-#     rank_deficiency = F.rank_deficiency
-#     rank_deficiency in (1, 3) ||
-#         throw(ArgumentError("rank_deficiency must be either 1 or 3."))
+    e₁ = ones(Float64, m)
 
-#     m₁, m₂ = F.G.grid_size
-#     m = m₁ * m₂
+    if rank_deficiency == 1
+        return reshape(e₁, :, 1)
+    end
 
-#     e₁ = ones(Float64, m)
+    e₂ = Float64.(repeat(1:m₁, m₂))
+    e₃ = Float64.(repeat(1:m₂, inner = m₁))
 
-#     if rank_deficiency == 1
-#         return reshape(e₁, :, 1)
-#     end
-
-#     e₂ = Float64.(repeat(1:m₁, m₂))
-#     e₃ = Float64.(repeat(1:m₂, inner = m₁))
-
-#     return hcat(e₁, e₂, e₃)
-# end
+    return hcat(e₁, e₂, e₃)
+end
 
 
 # """
