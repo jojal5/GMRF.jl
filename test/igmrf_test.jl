@@ -235,5 +235,38 @@
         end
     end
 
+    @testset "conditional_distribution" begin
+        import GMRF.conditional_distribution
+
+        @testset "first-order 2 x 2 lattice" begin
+            F = iGMRF(2, 2; order=1, precision=2.0)
+
+            B = [1]
+            x = [10.0]
+
+            pd = conditional_distribution(F, B, x)
+
+            h_expected = [20.0, 20.0, -0.0]
+
+            J_expected = 2.0 .* [
+                2 0 -1
+                0 2 -1
+                -1 -1 2
+            ]
+
+            @test pd == MvNormalCanon(h_expected, J_expected)
+        end
+
+
+        @testset "invalid arguments" begin
+            F = iGMRF(2, 2; order=1, precision=1.0)
+
+            @test_throws ArgumentError conditional_distribution(F, [0], [1.0])
+            @test_throws ArgumentError conditional_distribution(F, [5], [1.0])
+            @test_throws ArgumentError conditional_distribution(F, [1, 1], [1.0, 2.0])
+            @test_throws DimensionMismatch conditional_distribution(F, [1, 2], [1.0])
+        end
+    end
+
 end
 

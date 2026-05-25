@@ -239,36 +239,36 @@ function full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{F
 end
 
 
-# """
-#     conditional_distribution(F::iGMRF, B::AbstractVector{<:Integer}, x::AbstractVector{<:Real})::MvNormalCanon
+"""
+    conditional_distribution(F::iGMRF, B::AbstractVector{<:Integer}, x::AbstractVector{<:Real})::MvNormalCanon
 
-# Compute the conditional distribution of the grid cells outside `B`, given the
-# values `x` at the grid cells in `B`.
+Compute the conditional distribution of the grid cells outside `B`, given the
+values `x` at the grid cells in `B`.
 
-# The vector `x` must have the same length and ordering as `B`. The returned
-# distribution is represented in canonical normal form.
-# """
-# function conditional_distribution(
-#     F::GMRF.iGMRF,
-#     B::AbstractVector{<:Integer},
-#     x::AbstractVector{<:Real}
-# )::MvNormalCanon
+The vector `x` must have the same length and ordering as `B`. The returned
+distribution is represented in canonical normal form.
+"""
+function conditional_distribution(
+    F::iGMRF,
+    B::AbstractVector{<:Integer},
+    x::AbstractVector{<:Real}
+)::MvNormalCanon
 
-#     W = F.G.W
-#     κ = F.κ
-#     m = prod(F.G.grid_size)
+    W = F.W
+    κ = F.precision
+    m = F.G.m₁ * F.G.m₂
 
-#     all(1 .<= B .<= m) || throw(ArgumentError("all indices in B must be between 1 and $m."))
-#     allunique(B) || throw(ArgumentError("indices in B must be unique."))
-#     length(x) == length(B) || throw(DimensionMismatch("length(x) must be equal to length(B)."))
+    all(1 .<= B) && all(B .<= m) || throw(ArgumentError("all indices in B must be between 1 and $m."))
+    allunique(B) || throw(ArgumentError("indices in B must be unique."))
+    length(x) == length(B) || throw(DimensionMismatch("length(x) must be equal to length(B)."))
 
-#     A = setdiff(1:m, B)
+    A = setdiff(1:m, B)
 
-#     W_AA = W[A, A]
-#     W_AB = W[A, B]
+    W_AA = W[A, A]
+    W_AB = W[A, B]
 
-#     h = -κ .* (W_AB * x)
-#     J = κ .* Matrix(W_AA)
+    h = -κ .* (W_AB * x)
+    J = κ .* Matrix(W_AA)
 
-#     return MvNormalCanon(h, J)
-# end
+    return MvNormalCanon(h, J)
+end
