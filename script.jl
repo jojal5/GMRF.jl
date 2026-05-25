@@ -27,3 +27,23 @@ x = y[B]
 
 GMRF.conditional_distribution(F, B, x)
 
+
+
+
+
+using LinearAlgebra, SparseArrays, Test, Plots
+
+using Pkg
+pkg"activate ."
+
+using GMRF
+
+F = iGMRF(3, 3, order = 1, precision = 1.)
+
+y = rand(F)
+
+l1 = logpdf(F, y)
+
+l =  GMRF.full_conditionals_logpdf(F,y)
+
+l2 = sum(l)

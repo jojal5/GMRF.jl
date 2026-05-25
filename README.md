@@ -1,12 +1,5 @@
 # Gaussian Markov Random Field package for Julia
 
-[![Build Status Linux and macOS](https://travis-ci.org/jojal5/GMRF.jl.svg?branch=master)](https://travis-ci.org/jojal5/GMRF.jl)
-
-[![codecov.io](http://codecov.io/github/jojal5/GMRF.jl/coverage.svg?branch=master)](http://codecov.io/github/jojal5/GMRF.jl?branch=master)
-
-[![documentation stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://jojal5.github.io/GMRF.jl/stable/)
-[![documentation latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://jojal5.github.io/GMRF.jl/latest/)
-
 The package is based on the book of Harvard Rue and Leonard Held: [Gaussian Markov Random Fields--Theory and Applications](https://www.routledge.com/Gaussian-Markov-Random-Fields-Theory-and-Applications/Rue-Held/p/book/9781584884323)
 
 ## Quick start
@@ -36,6 +29,8 @@ The log-density of `y[i]` for each conditional distributions of grid cell `i` ca
 ```julia
 julia> GMRF.full_conditionals_logpdf(F,y)
 ```
+
+<!-- REMARK: One subtle point: the logpdf(F, y) is the density on the constrained intrinsic subspace, while full_conditionals_logpdf(F, y) corresponds to the usual local conditional specifications of the iGMRF. These last are useful for Gibbs sampling or pseudo-likelihood calculations, but their product is not the same as the joint density. -->
 
 The conditional distribution of the iGMRF knowing that grid cells in `B` are equal to `x` can be obtained as follows:
 ```julia
