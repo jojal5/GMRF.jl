@@ -16,21 +16,30 @@ function Base.show(io::IO, obj::iGMRF)
 
 end
 
+"""
+    iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)
+
+Construct an intrinsic Gaussian Markov random field on a regular two-dimensional
+lattice of size `(m₁, m₂)`.
+
+The argument `order` specifies the neighborhood structure. Use `order = 1` for a
+first-order iGMRF and `order = 2` for a second-order iGMRF. The parameter `κ` is
+the precision parameter.
+
+The constructor builds the corresponding `GridStructure`, sets the rank deficiency,
+and precomputes the log pseudo-determinant of the structure matrix.
+"""
 function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
+
     order in (1, 2) || throw(ArgumentError("order must be either 1 or 2."))
+    κ > 0 || throw(ArgumentError("κ must be positive."))
 
-    G = GridStructure(m₁, m₂, order=order)
+    G = GridStructure(m₁, m₂; order = order)
 
-    if order==1
-        rankdef=1
-    else
-        rankdef = 3
-    end 
+    rank_deficiency = order == 1 ? 1 : 3
+    log_pseudodet_W = log_pseudodet(G.W, rank_deficiency)
 
-    pdet = log_pseudodet(G.W, rankdef)
-
-    return iGMRF(G, rankdef, κ, pdet)
-
+    return iGMRF(G, rank_deficiency, κ, log_pseudodet_W)
 end
 
 
