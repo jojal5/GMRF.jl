@@ -1,7 +1,8 @@
 struct iGMRF
     G::GridStructure
-    rankDeficiency::Int64
-    κ::Float64              # Precision of the field
+    rank_deficiency::Int64
+    κ::Float64                 # Precision of the field
+    log_pseudodet_W::Float64   # Log pseudo-determinant of the structure matrix (useful for logpdf computing)
 end
 
 function Base.show(io::IO, obj::iGMRF)
@@ -10,7 +11,7 @@ function Base.show(io::IO, obj::iGMRF)
     println(io, "G :")
     showGridStructure(io, obj.G, prefix = "\t\t\t")
     println(io)
-    println(io, "rankDeficiency :\t", obj.rankDeficiency)
+    println(io, "rank deficiency :\t", obj.rank_deficiency)
     println(io, "κ :\t\t\t", obj.κ)
 
 end
@@ -26,14 +27,16 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
         rankdef = 3
     end 
 
-    return iGMRF(G, rankdef, κ)
+    pdet = log_pseudodet(G.W, rankdef)
+
+    return iGMRF(G, rankdef, κ, pdet)
 
 end
 
 
 function rand(F::iGMRF)::Vector{<:Real}
 
-    @assert F.rankDeficiency == 1 || F.rankDeficiency == 3 "The rank deficiency should be either 1 or 3"
+    @assert F.rank_deficiency == 1 || F.rank_deficiency == 3 "The rank deficiency should be either 1 or 3"
 
     κ = F.κ
     W = F.G.W
@@ -41,7 +44,7 @@ function rand(F::iGMRF)::Vector{<:Real}
     m₂ = F.G.grid_size[2]
     m = m₁ * m₂
 
-    if F.rankDeficiency == 1
+    if F.rank_deficiency == 1
 
         e₁ = ones(m,1)
 
@@ -89,7 +92,7 @@ function logpdf(F::iGMRF, y::Array{<:Real})::Real
     W = F.G.W
     m = F.G.grid_size[1] * F.G.grid_size[2]
 
-    k = F.rankDeficiency
+    k = F.rank_deficiency
 
     v = κ*W*y
     q = y'*v

@@ -5,7 +5,12 @@ pkg"activate ."
 
 using GMRF
 
-G = GMRF.GridStructure(20, 20, order =1)
+G = GMRF.GridStructure(3, 3, order = 2)
+
+GMRF.log_pseudodet(G.W, 3)
+
+
+
 F = GMRF.iGMRF(G, 1, 30.)
 
 y = GMRF.rand(F)
@@ -17,7 +22,7 @@ function logpdf2(F::GMRF.iGMRF, y::Array{<:Real})::Real
 
     κ = F.κ
     m = prod(F.G.grid_size)
-    k = F.rankDeficiency
+    k = F.rank_deficiency
 
     W = F.G.W
 
@@ -36,7 +41,7 @@ function logpdf3(F::GMRF.iGMRF, y::AbstractVector{<:Real})::Real
 
     κ = F.κ
     m = prod(F.G.grid_size)
-    k = F.rankDeficiency
+    k = F.rank_deficiency
     W = F.G.W
 
     κ > 0 || throw(ArgumentError("κ must be positive."))
