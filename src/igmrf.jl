@@ -113,41 +113,40 @@ function constraint_matrix(F::iGMRF)::Matrix{Float64}
 end
 
 
-# """
-#     rand(F::iGMRF)::Vector{Float64}
-#     rand(rng::AbstractRNG, F::iGMRF)::Vector{Float64}
+"""
+    rand(F::iGMRF)::Vector{Float64}
+    rand(rng::AbstractRNG, F::iGMRF)::Vector{Float64}
 
-# Generate one realization from the intrinsic Gaussian Markov random field `F`.
+Generate one realization from the intrinsic Gaussian Markov random field `F`.
 
-# The realization is sampled using the precision matrix `κW` and then projected
-# onto the constraint space associated with the rank deficiency of `F`.
+The realization is sampled using the precision matrix `κW` and then projected
+onto the constraint space associated with the rank deficiency of `F`.
 
-# Use `rand(rng, F)` with an explicit random number generator for reproducible
-# simulation.
-# """
-# function rand(rng::AbstractRNG, F::iGMRF)::Vector{Float64}
+Use `rand(rng, F)` with an explicit random number generator for reproducible
+simulation.
+"""
+function rand(rng::AbstractRNG, F::iGMRF)::Vector{Float64}
 
-#     κ = F.κ
-#     κ > 0 || throw(ArgumentError("κ must be positive."))
+    κ = F.precision
 
-#     W = F.G.W
-#     A = constraint_matrix(F)
-#     m = prod(F.G.grid_size)
+    W = F.W
+    A = constraint_matrix(F)
+    m = F.G.m₁ * F.G.m₂
 
-#     Q = κ * W + A * A'
-#     C = cholesky(Symmetric(Q))
+    Q = κ * W + A * A'
+    C = cholesky(Symmetric(Q))
 
-#     z = randn(rng, m)
-#     x = C.L' \ z
+    z = randn(rng, m)
+    x = C.L' \ z
 
-#     V = C \ A
-#     M = A' * V
-#     c = A' * x
+    V = C \ A
+    M = A' * V
+    c = A' * x
 
-#     return x - V * (M \ c)
-# end
+    return x - V * (M \ c)
+end
 
-# rand(F::iGMRF)::Vector{Float64} = rand(Random.default_rng(), F)
+rand(F::iGMRF)::Vector{Float64} = rand(Random.default_rng(), F)
 
 
 # """
