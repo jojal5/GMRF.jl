@@ -31,6 +31,69 @@ function Base.show(io::IO, obj::GridStructure)
 end
 
 """
+    first_order_igmrf_structure_matrix(G::GridStructure)::SparseMatrixCSC{Int64,Int64}
+
+Compute the first-order iGMRF structure matrix on the regular lattice `G`.
+
+# Details
+
+The lattice contains `G.m₁ * G.m₂` nodes, indexed column-wise. Two nodes are
+first-order neighbors if they are horizontally or vertically adjacent.
+
+Returns the structure matrix `W`, where `W[i, i]` is the number of first-order
+neighbors of node `i`, and `W[i, j] = -1` when nodes `i` and `j` are neighbors.
+"""
+function first_order_igmrf_structure_matrix(G::GridStructure)::SparseMatrixCSC{Int64,Int64}
+
+    m₁ = G.m₁
+    m₂ = G.m₂
+
+    # 1-off diagonal elements
+    v = ones(Int64, m₁)
+    v[end] = 0
+    V = repeat(v, outer = m₂)
+    pop!(V)
+
+    # m₁-off diagonal elements
+    U = ones(Int64, m₁ * (m₂ - 1))
+
+    # get the upper triangular part of the adjacency matrix
+    m = m₁ * m₂
+    D = sparse(1:(m - 1), 2:m, V, m, m) +
+        sparse(1:(m - m₁), (m₁ + 1):m, U, m, m)
+
+    # make D symmetric
+    D = D + D'
+
+    # iGMRF structure matrix
+    W = spdiagm(0 => vec(sum(D, dims = 2))) - D
+
+    return W
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"""
     GridStructure(m₁::Integer, m₂::Integer; order::Integer)
 
 Construct the neighborhood structure of a regular two-dimensional lattice of size

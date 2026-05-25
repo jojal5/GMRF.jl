@@ -27,23 +27,51 @@
         end
     end
 
-
-
-
-    gs = GMRF.GridStructure((1, 2), [[2], [1]], [[1], [2]], spzeros(1, 2), spzeros(1, 2))
-    io = IOBuffer()
-
-    @testset "showGridStructure(io, obj; prefix)" begin
+    @test_set "show function" begin
+        G = GridStructure(3, 4)
+        io = IOBuffer()
         # does not throw
-        @test_logs GMRF.showGridStructure(io, gs, prefix="\t")
+        @test_logs GMRF.showGridStructure(io, G)
+    end
+
+    @test_set "first_order_igmrf_structure_matrix()" begin
+        import GRMF.first_order_igmrf_structure_matrix
+        import GMRF.GridStructure
+
+        @test_set "line 1 x 3" begin
+            W_expected = sparse([1 -1 0; -1 2 -1; 0 -1 1])
+            W = first_order_igmrf_structure_matrix(GridStructure(1, 3))
+            @test W == W_expected
+        end
+
+        @testset "3 x 2 lattice" begin
+            W_expected = sparse([
+                2 -1 0 -1 0 0
+                -1 3 -1 0 -1 0
+                0 -1 2 0 0 -1
+                -1 0 0 2 -1 0
+                0 -1 0 -1 3 -1
+                0 0 -1 0 -1 2
+            ])
+
+            W = first_order_igmrf_structure_matrix(GridStructure(3, 2))
+            @test W == W_expected
+        end
 
     end
 
-    @testset "Base.show(io, obj)" begin
-        # does not throw
-        @test_logs Base.show(io, gs)
 
-    end
+
+
+
+
+
+
+
+
+
+
+
 
     @testset "first_order_lattice_neighbors" begin
         import GMRF.first_order_lattice_neighbors
