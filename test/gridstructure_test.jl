@@ -1,9 +1,9 @@
 @testset "gridstructure.jl" begin
     import GMRF.GridStructure
 
-    @test_set "constructor" begin
+    @testset "constructor" begin
         
-        @test_set "valid arguments" begin
+        @testset "valid arguments" begin
             G = GridStructure(3, 4)
             @test G.m₁ == 3
             @test G.m₂ == 4
@@ -28,17 +28,17 @@
         end
     end
 
-    @test_set "show function" begin
+    @testset "show function" begin
         G = GridStructure(3, 4)
         io = IOBuffer()
         # does not throw
         @test_logs GMRF.showGridStructure(io, G)
     end
 
-    @test_set "first_order_igmrf_structure_matrix()" begin
-        import GRMF.first_order_igmrf_structure_matrix
+    @testset "first_order_igmrf_structure_matrix()" begin
+        import GMRF.first_order_igmrf_structure_matrix
 
-        @test_set "line 1 x 3" begin
+        @testset "line 1 x 3" begin
             W_expected = sparse([1 -1 0; -1 2 -1; 0 -1 1])
             W = first_order_igmrf_structure_matrix(GridStructure(1, 3))
             @test W == W_expected
@@ -61,7 +61,7 @@
     end
 
     @testset "first_order_conditional_independent_subsets" begin
-        subsets = GMRF.first_order_conditional_independent_subsets(3, 3)
+        subsets = GMRF.first_order_igmrf_conditional_independent_subsets(GridStructure(3,3))
 
         @test subsets == [
             [1, 3, 5, 7, 9],
@@ -109,7 +109,7 @@
     end
 
     @testset "second_order_igmrf_conditional_independent_subsets" begin
-        subsets = GMRF.second_order_igmrf_conditional_independent_subsets(3, 3)
+        subsets = GMRF.second_order_igmrf_conditional_independent_subsets(GridStructure(3,3))
 
         @test subsets == [
             [1, 8],

@@ -18,11 +18,11 @@ struct GridStructure
     end
 end
 
-function showGridStructure(io::IO, obj::GridStructure)
+function showGridStructure(io::IO, obj::GridStructure; prefix::String="")
 
-    println(io, "GridStructure")
-    println(io, " ", "m₁ = ", obj.m₁)
-    println(io, " ", "m₂ = ", obj.m₂)
+    println(io, prefix,"GridStructure")
+    println(io, prefix, " ", "m₁ = ", obj.m₁)
+    println(io, prefix, " ", "m₂ = ", obj.m₂)
 
 end
 

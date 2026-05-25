@@ -1,3 +1,25 @@
+
+@testset "igmrf.jl" begin
+    
+    @testset "constructors" begin
+        
+    end
+
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @testset "igmrf.jl" begin
     @testset "Base.show(io, obj)" begin
         # does not throw
