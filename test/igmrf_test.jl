@@ -130,16 +130,48 @@
         end
     end
 
+    @testset "logpdf(::iGMRF)" begin
+
+        @testset "first-order 2 x 2" begin
+            F = iGMRF(2, 2; order=1, precision=2.0)
+
+            y = [1.0, -1.0, 0.0, 0.0]
+            # For this y, y'Wy = 6.
+
+            # Eigenvalues of W are 0, 2, 2, 4.
+            # Hence log_pseudodet(W) = log(16), rank deficiency is 1, and r = 3.
+            expected =
+                -0.5 * 3 * log(2π) +
+                0.5 * 3 * log(2.0) +
+                0.5 * log(16.0) -
+                0.5 * 2.0 * 6.0
+
+            @test logpdf(F, y) ≈ expected
+        end
+
+        @testset "second-order 3 x 3 finite value" begin
+            F = iGMRF(3, 3; order=2, precision=2.)
+
+            # Eigenvalues of W are 0, 0, 0, 2, 6, 6, 12, 12, 30
+            # Hence log_pseudodet(W) = log(311040), rank deficiency is 3, and r = 6. 
+
+            y = [1., 0., 1., 0., 1., 0., 1., 0., 1.]
+            # For this y, y'Wy = 56.
+
+            expected =
+                -0.5 * 6 * log(2π) +
+                0.5 * 6 * log(2.0) +
+                0.5 * log(311040) -
+                0.5 * 2.0 * 56.
+
+            @test logpdf(F, y) ≈ expected
+        end
+
+        @testset "dimension mismatch" begin
+            F = iGMRF(2, 2; order=1, precision=1.0)
+            @test_throws DimensionMismatch logpdf(F, zeros(3))
+        end
+    end
+
 end
-
-
-
-
-
-
-
-
-
-
-
 

@@ -149,36 +149,36 @@ end
 rand(F::iGMRF)::Vector{Float64} = rand(Random.default_rng(), F)
 
 
-# """
-#     logpdf(F::iGMRF, y::AbstractVector{<:Real})::Real
+"""
+    logpdf(F::iGMRF, y::AbstractVector{<:Real})::Real
 
-# Compute the pseudo log-density of the intrinsic Gaussian Markov random field `F` at `y`.
+Compute the pseudo log-density of the intrinsic Gaussian Markov random field `F` at `y`.
 
-# The density is evaluated on the subspace of dimension `m - k`, where `m` is the
-# number of grid cells and `k` is the rank deficiency of the structure matrix. The
-# normalizing constant uses the log pseudo-determinant of the structure matrix `W`.
+The density is evaluated on the subspace of dimension `m - k`, where `m` is the
+number of grid cells and `k` is the rank deficiency of the structure matrix. The
+normalizing constant uses the log pseudo-determinant of the structure matrix `W`.
 
-# This implements Eq. (3.13) of Rue and Held (2002).
-# """
-# function logpdf(F::GMRF.iGMRF, y::AbstractVector{<:Real})::Real
+This implements Eq. (3.13) of Rue and Held (2002).
+"""
+function logpdf(F::GMRF.iGMRF, y::AbstractVector{<:Real})::Real
 
-#     κ = F.κ
-#     m = prod(F.G.grid_size)
-#     k = F.rank_deficiency
-#     W = F.G.W
+    κ = F.precision
+    m = F.G.m₁ * F.G.m₂
+    rank_deficiency = F.order == 1 ? 1 : 3
+    W = F.W
 
-#     length(y) == m || throw(DimensionMismatch("length(y) must be equal to prod(F.G.grid_size)."))
+    length(y) == m || throw(DimensionMismatch("length(y) must be equal to F.G.m₁ * F.G.m₂."))
 
-#     r = m - k
+    r = m - rank_deficiency
 
-#     v = W * y
-#     q = dot(y, v)
+    v = W * y
+    q = dot(y, v)
 
-#     return -0.5 * r * log(2π) +
-#             0.5 * r * log(κ) +
-#             0.5 * F.log_pseudodet_W -
-#             0.5 * κ * q
-# end
+    return -0.5 * r * log(2π) +
+            0.5 * r * log(κ) +
+            0.5 * F.log_pseudodet_W -
+            0.5 * κ * q
+end
 
 
 # """
