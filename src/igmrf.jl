@@ -1,10 +1,3 @@
-# struct iGMRF
-#     G::GridStructure
-#     rank_deficiency::Int64
-#     κ::Float64                 # Precision of the field
-#     log_pseudodet_W::Float64   # Log pseudo-determinant of the structure matrix (useful for logpdf computing)
-# end
-
 struct iGMRF
     G::GridStructure
     order::Int64
@@ -181,35 +174,37 @@ function logpdf(F::GMRF.iGMRF, y::AbstractVector{<:Real})::Real
 end
 
 
-# """
-#     full_conditional_canonical_parameters(F::iGMRF, y::AbstractVector{<:Real})
+"""
+    full_conditional_canonical_parameters(F::iGMRF, y::AbstractVector{<:Real})
 
-# Compute the canonical parameters of the full conditional distributions of the
-# intrinsic Gaussian Markov random field `F` at all grid cells, given the current
-# field values `y`.
+Compute the canonical parameters of the full conditional distributions of the
+intrinsic Gaussian Markov random field `F` at all grid cells, given the current
+field values `y`.
 
-# Returns a tuple `(h, Q)`, where `h[i]` is the canonical parameter and `Q[i]` is
-# the precision of the full conditional distribution at grid cell `i`.
-# """
-# function full_conditional_canonical_parameters(
-#     F::iGMRF,
-#     y::AbstractVector{<:Real})
+Returns a tuple `(h, Q)`, where `h[i]` is the canonical parameter and `Q[i]` is
+the precision of the full conditional distribution at grid cell `i`.
+"""
+function full_conditional_canonical_parameters(
+    F::iGMRF,
+    y::AbstractVector{<:Real},
+)
 
-#     κ = F.κ
+    κ = F.precision
 
-#     W = F.G.W
-#     W̄ = F.G.W̄
+    W = F.W
+    W̄ = F.W̄
 
-#     length(y) == size(W, 1) ||
-#         throw(DimensionMismatch("length(y) must be equal to the number of grid cells."))
+    length(y) == size(W, 1) ||
+        throw(DimensionMismatch("length(y) must be equal to the number of grid cells."))
 
-#     h = -κ .* (W̄ * y)
+    h = -κ .* (W̄ * y)
 
-#     Q = Vector(diag(W))
-#     Q .*= κ
+    Q = Vector(diag(W))
+    Q .*= κ
 
-#     return h, Q
-# end
+    return h, Q
+end
+
 
 # """
 #     full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}

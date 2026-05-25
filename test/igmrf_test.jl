@@ -173,5 +173,28 @@
         end
     end
 
+    @testset "full_conditional_canonical_parameters" begin
+
+        @testset "first-order 2 x 2 lattice" begin
+            F = iGMRF(2, 2; order = 1, precision = 2.0)
+
+            y = [1.0, 2.0, 3.0, 4.0]
+
+            h, Q = GMRF.full_conditional_canonical_parameters(F, y)
+
+            # For this y, W̄ * y = [-5, -5, -5, -5].
+            # With κ = 2, h = -κ * W̄ * y = [10, 10, 10, 10].
+            # Also Q = κ * diag(W) = [4, 4, 4, 4].
+
+            @test h == [10.0, 10.0, 10.0, 10.0]
+            @test Q == [4.0, 4.0, 4.0, 4.0]
+        end
+
+        @testset "dimension mismatch" begin
+            F = iGMRF(2, 2; order=1, precision=1.0)
+            @test_throws DimensionMismatch GMRF.full_conditional_canonical_parameters(F, zeros(3))
+        end
+    end
+
 end
 
