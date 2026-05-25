@@ -10,6 +10,6 @@ include("gridstructure.jl")
 include("igmrf.jl")
 include("utils.jl")
 
-export iGMRF, rand, logpdf, fullconditionals, fullcondlogpdf, getconditional
+export iGMRF, rand, logpdf
 
 end # module
