@@ -18,21 +18,16 @@ struct GridStructure
     end
 end
 
+function showGridStructure(io::IO, obj::GridStructure)
 
-
-
-function showGridStructure(io::IO, obj::GridStructure; prefix::String = "")
-
-    println(io, prefix, "GridStructure")
-    println(io, prefix, "grid size :\t", obj.grid_size)
-    println(io, prefix, "neighbors :\t", typeof(obj.neighbors), "[", length(obj.neighbors), "]")
+    println(io, "GridStructure")
+    println(io, " ", "m₁ = ", obj.m₁)
+    println(io, " ", "m₂ = ", obj.m₂)
 
 end
 
 function Base.show(io::IO, obj::GridStructure)
-
     showGridStructure(io, obj)
-
 end
 
 """
