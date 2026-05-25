@@ -1,10 +1,25 @@
+# struct GridStructure
+#     grid_size::Tuple{Int64,Int64}             # Tuple containing the number of rows and the number of columns
+#     neighbors::Vector{Vector{Int64}}          # list of neighbors for each grid cell
+#     cond_ind_subset::Vector{Vector{Int64}}    # Conditional independant subsets of grid cell
+#     W::SparseMatrixCSC{Int64,Int64}           # Structure matrix
+#     W̄::SparseMatrixCSC{Int64,Int64}           # Structure matrix minus the diagonal
+# end
+
 struct GridStructure
-    grid_size::Tuple{Int64,Int64}             # Tuple containing the number of rows and the number of columns
-    neighbors::Vector{Vector{Int64}}          # list of neighbors for each grid cell
-    cond_ind_subset::Vector{Vector{Int64}}    # Conditional independant subsets of grid cell
-    W::SparseMatrixCSC{Int64,Int64}           # Structure matrix
-    W̄::SparseMatrixCSC{Int64,Int64}           # Structure matrix minus the diagonal
+    m₁::Int64   # Number of rows
+    m₂::Int64   # Number of columns
+
+    function GridStructure(m₁::Integer, m₂::Integer)
+        m₁ > 0 || throw(ArgumentError("m₁ must be positive."))
+        m₂ > 0 || throw(ArgumentError("m₂ must be positive."))
+
+        return new(Int64(m₁), Int64(m₂))
+    end
 end
+
+
+
 
 function showGridStructure(io::IO, obj::GridStructure; prefix::String = "")
 

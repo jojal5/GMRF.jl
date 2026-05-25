@@ -1,4 +1,35 @@
 @testset "gridstructure.jl" begin
+
+    @test_set "constructor" begin
+        
+        @test_set "valid arguments" begin
+            G = GridStructure(3, 4)
+            @test G.m₁ == 3
+            @test G.m₂ == 4
+            @test typeof(G.m₁) == Int64
+            @test typeof(G.m₂) == Int64
+        end
+
+        @testset "integer conversion" begin
+            G = GridStructure(Int32(3), Int32(4))
+
+            @test G.m₁ == 3
+            @test G.m₂ == 4
+            @test typeof(G.m₁) == Int64
+            @test typeof(G.m₂) == Int64
+        end
+
+        @testset "invalid dimensions" begin
+            @test_throws ArgumentError GridStructure(0, 4)
+            @test_throws ArgumentError GridStructure(3, 0)
+            @test_throws ArgumentError GridStructure(-1, 4)
+            @test_throws ArgumentError GridStructure(3, -1)
+        end
+    end
+
+
+
+
     gs = GMRF.GridStructure((1, 2), [[2], [1]], [[1], [2]], spzeros(1, 2), spzeros(1, 2))
     io = IOBuffer()
 
@@ -175,7 +206,7 @@ end
     import GMRF.GridStructure
 
     @testset "first-order 3 x 3 lattice" begin
-        G = GridStructure(3, 3; order = 1)
+        G = GridStructure(3, 3; order=1)
 
         @test G.grid_size == (3, 3)
 
@@ -197,15 +228,15 @@ end
         ]
 
         W_expected = sparse([
-             2 -1  0 -1  0  0  0  0  0
-            -1  3 -1  0 -1  0  0  0  0
-             0 -1  2  0  0 -1  0  0  0
-            -1  0  0  3 -1  0 -1  0  0
-             0 -1  0 -1  4 -1  0 -1  0
-             0  0 -1  0 -1  3  0  0 -1
-             0  0  0 -1  0  0  2 -1  0
-             0  0  0  0 -1  0 -1  3 -1
-             0  0  0  0  0 -1  0 -1  2
+            2 -1 0 -1 0 0 0 0 0
+            -1 3 -1 0 -1 0 0 0 0
+            0 -1 2 0 0 -1 0 0 0
+            -1 0 0 3 -1 0 -1 0 0
+            0 -1 0 -1 4 -1 0 -1 0
+            0 0 -1 0 -1 3 0 0 -1
+            0 0 0 -1 0 0 2 -1 0
+            0 0 0 0 -1 0 -1 3 -1
+            0 0 0 0 0 -1 0 -1 2
         ])
 
         @test G.W == W_expected
@@ -213,7 +244,7 @@ end
     end
 
     @testset "second-order 3 x 3 lattice" begin
-        G = GridStructure(3, 3; order = 2)
+        G = GridStructure(3, 3; order=2)
 
         @test G.grid_size == (3, 3)
 
@@ -239,25 +270,25 @@ end
             [9],
         ]
 
-            W_expected = sparse([
-                4 -4 1 -4 2 0 1 0 0
-                -4 9 -4 2 -6 2 0 1 0
-                1 -4 4 0 2 -4 0 0 1
-                -4 2 0 9 -6 1 -4 2 0
-                2 -6 2 -6 16 -6 2 -6 2
-                0 2 -4 1 -6 9 0 2 -4
-                1 0 0 -4 2 0 4 -4 1
-                0 1 0 2 -6 2 -4 9 -4
-                0 0 1 0 2 -4 1 -4 4
-            ])
+        W_expected = sparse([
+            4 -4 1 -4 2 0 1 0 0
+            -4 9 -4 2 -6 2 0 1 0
+            1 -4 4 0 2 -4 0 0 1
+            -4 2 0 9 -6 1 -4 2 0
+            2 -6 2 -6 16 -6 2 -6 2
+            0 2 -4 1 -6 9 0 2 -4
+            1 0 0 -4 2 0 4 -4 1
+            0 1 0 2 -6 2 -4 9 -4
+            0 0 1 0 2 -4 1 -4 4
+        ])
 
         @test G.W == W_expected
         @test G.W̄ == W_expected - spdiagm(0 => diag(W_expected))
     end
 
     @testset "invalid arguments" begin
-        @test_throws ArgumentError GridStructure(0, 3; order = 1)
-        @test_throws ArgumentError GridStructure(3, 0; order = 1)
-        @test_throws ArgumentError GridStructure(3, 3; order = 0)
+        @test_throws ArgumentError GridStructure(0, 3; order=1)
+        @test_throws ArgumentError GridStructure(3, 0; order=1)
+        @test_throws ArgumentError GridStructure(3, 3; order=0)
     end
 end
