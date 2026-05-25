@@ -7,6 +7,7 @@ import Distributions.rand, Distributions.logpdf
 include("graphstructure.jl")
 include("gridstructure.jl")
 include("igmrf.jl")
+include("utils.jl")
 
 export iGMRF, rand, logpdf, fullconditionals, fullcondlogpdf, getconditional
 
