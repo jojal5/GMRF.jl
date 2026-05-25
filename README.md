@@ -30,7 +30,8 @@ The log-density of `y[i]` for each conditional distributions of grid cell `i` ca
 julia> GMRF.full_conditionals_logpdf(F,y)
 ```
 
-<!-- REMARK: One subtle point: the logpdf(F, y) is the density on the constrained intrinsic subspace, while full_conditionals_logpdf(F, y) corresponds to the usual local conditional specifications of the iGMRF. These last are useful for Gibbs sampling or pseudo-likelihood calculations, but their product is not the same as the joint density. -->
+[!NOTE]
+ One subtle point: the logpdf(F, y) is the density on the constrained intrinsic subspace, while full_conditionals_logpdf(F, y) corresponds to the usual local conditional specifications of the iGMRF. These last are useful for Gibbs sampling or pseudo-likelihood calculations, but their product is not the same as the joint density.
 
 The conditional distribution of the iGMRF knowing that grid cells in `B` are equal to `x` can be obtained as follows:
 ```julia
