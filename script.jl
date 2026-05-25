@@ -7,6 +7,8 @@ using GMRF
 
 F = iGMRF(20, 20, 1, 1.)
 
+F.G
+
 y = rand(F)
 
 # x = reshape(y, 20, 20)
