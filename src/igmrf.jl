@@ -85,23 +85,40 @@ function rand(F::iGMRF)::Vector{<:Real}
 
 end
 
-function logpdf(F::iGMRF, y::Array{<:Real})::Real
+
+"""
+    logpdf(F::iGMRF, y::AbstractVector{<:Real})::Real
+
+Compute the pseudo log-density of the intrinsic Gaussian Markov random field `F` at `y`.
+
+The density is evaluated on the subspace of dimension `m - k`, where `m` is the
+number of grid cells and `k` is the rank deficiency of the structure matrix. The
+normalizing constant uses the log pseudo-determinant of the structure matrix `W`.
+
+This implements Eq. (3.13) of Rue and Held (2002).
+"""
+function logpdf(F::GMRF.iGMRF, y::AbstractVector{<:Real})::Real
 
     κ = F.κ
-
-    W = F.G.W
-    m = F.G.grid_size[1] * F.G.grid_size[2]
-
+    m = prod(F.G.grid_size)
     k = F.rank_deficiency
+    W = F.G.W
 
-    v = κ*W*y
-    q = y'*v
+    length(y) == m || throw(DimensionMismatch("length(y) must be equal to prod(F.G.grid_size)."))
 
-    lpdf =  .5*(m-k)*log(κ) - .5*q
+    r = m - k
 
-    return lpdf
+    v = W * y
+    q = dot(y, v)
 
+    return -0.5 * r * log(2π) +
+            0.5 * r * log(κ) +
+            0.5 * F.log_pseudodet_W -
+            0.5 * κ * q
 end
+
+
+
 
 function fullconditionals(F::iGMRF, y::Vector{<:Real})::Vector{NormalCanon}
 
