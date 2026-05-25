@@ -3,6 +3,13 @@
 This package is based on the book by Håvard Rue and Leonard Held:
 [Gaussian Markov Random Fields: Theory and Applications](https://www.routledge.com/Gaussian-Markov-Random-Fields-Theory-and-Applications/Rue-Held/p/book/9781584884323).
 
+
+[![CI](https://github.com/jojal5/GMRF.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/jojal5/GMRF.jl/actions/workflows/ci.yml)
+[![Docs](https://github.com/jojal5/GMRF.jl/actions/workflows/docs.yml/badge.svg)](https://github.com/jojal5/GMRF.jl/actions/workflows/docs.yml)
+[![codecov](https://codecov.io/gh/jojal5/GMRF.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/jojal5/GMRF.jl)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://jojal5.github.io/GMRF.jl/dev/)
+
+
 ## Quick start
 
 Define a first-order intrinsic Gaussian Markov random field (iGMRF) with precision `1.0` on a regular lattice of size `(20, 20)`:
