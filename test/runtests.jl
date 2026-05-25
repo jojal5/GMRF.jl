@@ -1,5 +1,5 @@
 using GMRF
-using LinearAlgebra, SparseArrays, Random
+using Distributions, LinearAlgebra, SparseArrays, Random
 using Test
 
 @testset "GMRF.jl" begin

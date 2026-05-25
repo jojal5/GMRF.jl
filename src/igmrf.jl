@@ -221,24 +221,22 @@ function full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCa
     return NormalCanon.(h, Q)
 end
 
+"""
+    full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{Float64}
 
+Compute the log-density of each grid-cell value under its full conditional
+distribution.
 
-# """
-#     full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{Float64}
+For each grid cell `i`, this returns `log f(y[i] | y[-i])`, where the full
+conditional distribution is represented in canonical normal form with canonical
+parameter `h[i]` and precision `Q[i]`.
+"""
+function full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{Float64}
 
-# Compute the log-density of each grid-cell value under its full conditional
-# distribution.
+    h, Q = full_conditional_canonical_parameters(F, y)
 
-# For each grid cell `i`, this returns `log f(y[i] | y[-i])`, where the full
-# conditional distribution is represented in canonical normal form with canonical
-# parameter `h[i]` and precision `Q[i]`.
-# """
-# function full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{Float64}
-
-#     h, Q = full_conditional_canonical_parameters(F, y)
-
-#     return @. h * y - 0.5 * Q * y^2 - 0.5 * log(2π) + 0.5 * log(Q) - 0.5 * h^2 / Q
-# end
+    return @. h * y - 0.5 * Q * y^2 - 0.5 * log(2π) + 0.5 * log(Q) - 0.5 * h^2 / Q
+end
 
 
 # """

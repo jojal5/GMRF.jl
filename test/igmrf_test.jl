@@ -202,12 +202,37 @@
 
         y = [1.0, 2.0, 3.0, 4.0]
 
-        pd = full_conditionals(F, y)
-        h, Q = full_conditional_canonical_parameters(F, y)
+        pd = GMRF.full_conditionals(F, y)
+        h, Q = GMRF.full_conditional_canonical_parameters(F, y)
 
         @test length(pd) == 4
         @test all(pd .== NormalCanon.(h, Q))
 
+    end
+
+    @testset "full_conditionals_logpdf" begin
+
+        @testset "first-order 2 x 2 lattice" begin
+            F = iGMRF(2, 2; order=1, precision=2.0)
+
+            y = [1.0, 2.0, 3.0, 4.0]
+
+            l = GMRF.full_conditionals_logpdf(F, y)
+
+            # For this case:
+            # h = [10, 10, 10, 10]
+            # Q = [4, 4, 4, 4]
+            h = fill(10.0, 4)
+            Q = fill(4.0, 4)
+
+            expected = @. h * y -
+                          0.5 * Q * y^2 -
+                          0.5 * log(2π) +
+                          0.5 * log(Q) -
+                          0.5 * h^2 / Q
+
+            @test l ≈ expected
+        end
     end
 
 end
