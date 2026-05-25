@@ -1,13 +1,15 @@
 module GMRF
 
-using LinearAlgebra, SparseArrays, StatsBase, Distributions
+using Distributions, LinearAlgebra, Random, SparseArrays
 
-import Distributions.rand, Distributions.logpdf
+import Distributions.logpdf
+import Random.rand
 
 include("graphstructure.jl")
 include("gridstructure.jl")
 include("igmrf.jl")
+include("utils.jl")
 
-export iGMRF, rand, logpdf, fullconditionals, fullcondlogpdf, getconditional
+export iGMRF, rand, logpdf
 
 end # module
