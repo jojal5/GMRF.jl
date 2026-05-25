@@ -1,8 +1,9 @@
 module GMRF
 
-using LinearAlgebra, SparseArrays, StatsBase, Distributions
+using LinearAlgebra, Random, SparseArrays, StatsBase, Distributions
 
 import Distributions.rand, Distributions.logpdf
+import Random.rand
 
 include("graphstructure.jl")
 include("gridstructure.jl")
