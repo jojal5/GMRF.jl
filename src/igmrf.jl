@@ -42,10 +42,39 @@ function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
     return iGMRF(G, rank_deficiency, κ, log_pseudodet_W)
 end
 
+"""
+    constraint_matrix(F::iGMRF)::Matrix{Float64}
+
+Construct the constraint matrix associated with the intrinsic Gaussian Markov
+random field `F`.
+
+For a first-order iGMRF, the constraint matrix contains the constant vector. For
+a second-order iGMRF, it contains the constant vector and the two coordinate
+vectors.
+"""
+function constraint_matrix(F::iGMRF)::Matrix{Float64}
+
+    rank_deficiency = F.rank_deficiency
+    rank_deficiency in (1, 3) ||
+        throw(ArgumentError("rank_deficiency must be either 1 or 3."))
+
+    m₁, m₂ = F.G.grid_size
+    m = m₁ * m₂
+
+    e₁ = ones(Float64, m)
+
+    if rank_deficiency == 1
+        return reshape(e₁, :, 1)
+    end
+
+    e₂ = Float64.(repeat(1:m₁, m₂))
+    e₃ = Float64.(repeat(1:m₂, inner = m₁))
+
+    return hcat(e₁, e₂, e₃)
+end
+
 
 function rand(F::iGMRF)::Vector{<:Real}
-
-    @assert F.rank_deficiency == 1 || F.rank_deficiency == 3 "The rank deficiency should be either 1 or 3"
 
     κ = F.κ
     W = F.G.W

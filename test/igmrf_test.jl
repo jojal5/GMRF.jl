@@ -32,6 +32,40 @@
 
     end
 
+    @testset "constraint_matrix" begin
+        import GMRF.constraint_matrix
+
+    @testset "first-order iGMRF" begin
+        F = iGMRF(2, 3, 1, 1.0)
+
+        A = constraint_matrix(F)
+
+        @test size(A) == (6, 1)
+        @test A == ones(6, 1)
+    end
+
+    @testset "second-order iGMRF" begin
+        F = iGMRF(3, 3, 2, 1.0)
+
+        A = constraint_matrix(F)
+
+        A_expected = [
+            1.0  1.0  1.0
+            1.0  2.0  1.0
+            1.0  3.0  1.0
+            1.0  1.0  2.0
+            1.0  2.0  2.0
+            1.0  3.0  2.0
+            1.0  1.0  3.0
+            1.0  2.0  3.0
+            1.0  3.0  3.0
+        ]
+
+        @test size(A) == (9, 3)
+        @test A == A_expected
+    end
+end
+
     @testset "first_order_lattice_neighbors(m₁, m₂)" begin
         # Grid 1 x 1
         nbs, W = GMRF.first_order_lattice_neighbors(1, 1)
