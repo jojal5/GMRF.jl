@@ -206,30 +206,22 @@ function full_conditional_canonical_parameters(
 end
 
 
-# """
-#     full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}
+"""
+    full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}
 
-# Compute the full conditional distributions of the intrinsic Gaussian Markov
-# random field `F` at all grid cells, given the current field values `y`.
+Compute the full conditional distributions of the intrinsic Gaussian Markov
+random field `F` at all grid cells, given the current field values `y`.
 
-# The distributions are returned in canonical normal form.
-# """
-# function full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}
+The distributions are returned in canonical normal form.
+"""
+function full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}
 
-#     h, Q = full_conditional_canonical_parameters(F, y)
+    h, Q = full_conditional_canonical_parameters(F, y)
 
-#     return NormalCanon.(h, Q)
-# end
+    return NormalCanon.(h, Q)
+end
 
-# function fullcondlogpdf(F::iGMRF, y::Vector{<:Real})::Vector{<:Real}
 
-#     pd = full_conditionals(F::iGMRF,y::Vector{<:Real})
-
-#     clpdf = logpdf.(pd,y)
-
-#     return clpdf
-
-# end
 
 # """
 #     full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{Float64}

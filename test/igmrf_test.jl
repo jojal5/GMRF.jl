@@ -176,7 +176,7 @@
     @testset "full_conditional_canonical_parameters" begin
 
         @testset "first-order 2 x 2 lattice" begin
-            F = iGMRF(2, 2; order = 1, precision = 2.0)
+            F = iGMRF(2, 2; order=1, precision=2.0)
 
             y = [1.0, 2.0, 3.0, 4.0]
 
@@ -194,6 +194,20 @@
             F = iGMRF(2, 2; order=1, precision=1.0)
             @test_throws DimensionMismatch GMRF.full_conditional_canonical_parameters(F, zeros(3))
         end
+    end
+
+    @testset "full_conditionals" begin
+
+        F = iGMRF(2, 2; order=1, precision=2.0)
+
+        y = [1.0, 2.0, 3.0, 4.0]
+
+        pd = full_conditionals(F, y)
+        h, Q = full_conditional_canonical_parameters(F, y)
+
+        @test length(pd) == 4
+        @test all(pd .== NormalCanon.(h, Q))
+
     end
 
 end
