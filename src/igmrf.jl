@@ -1,45 +1,79 @@
 struct iGMRF
     G::GridStructure
-    rank_deficiency::Int64
-    κ::Float64                 # Precision of the field
-    log_pseudodet_W::Float64   # Log pseudo-determinant of the structure matrix (useful for logpdf computing)
+    order::Int64
+    precision::Float64
+    cond_ind_subset::Vector{Vector{Int64}}    # Conditional independent subsets of grid cells
+    W::SparseMatrixCSC{Int64,Int64}           # Structure matrix
+    W̄::SparseMatrixCSC{Int64,Int64}           # Structure matrix minus the diagonal
+    log_pseudodet_W::Float64                  # Log pseudo-determinant of the structure matrix (useful for logpdf computing)
+end
+
+"""
+    iGMRF(G::GridStructure; order::Integer = 1, precision::Real = 1.0)
+
+Construct an intrinsic Gaussian Markov random field on the regular lattice `G`.
+
+The keyword argument `order` specifies the neighborhood structure. Use `order = 1`
+for a first-order iGMRF and `order = 2` for a second-order iGMRF. The argument
+`precision` is the positive precision parameter.
+"""
+function iGMRF(G::GridStructure; order::Integer = 1, precision::Real = 1.0)::iGMRF
+
+    order in (1, 2) || throw(ArgumentError("order must be either 1 or 2."))
+    precision > 0 || throw(ArgumentError("precision must be positive."))
+
+    order = Int64(order)
+    precision = Float64(precision)
+
+    if order == 1
+        W = first_order_igmrf_structure_matrix(G)
+        cond_ind_subset = first_order_igmrf_conditional_independent_subsets(G)
+    else
+        W = second_order_igmrf_structure_matrix(G)
+        cond_ind_subset = second_order_igmrf_conditional_independent_subsets(G)
+    end
+
+    W̄ = W - spdiagm(0 => Vector(diag(W)))
+
+    rank_deficiency = order == 1 ? 1 : 3
+
+    log_pseudodet_W = log_pseudodet(W, rank_deficiency)
+
+    return iGMRF(
+        G,
+        order,
+        precision,
+        cond_ind_subset,
+        W,
+        W̄,
+        log_pseudodet_W,
+    )
+end
+
+"""
+    iGMRF(m₁::Integer, m₂::Integer; order::Integer = 1, precision::Real = 1.0)
+
+Construct an intrinsic Gaussian Markov random field on a regular two-dimensional
+lattice of size `(m₁, m₂)`.
+"""
+function iGMRF(
+    m₁::Integer,
+    m₂::Integer;
+    order::Integer = 1,
+    precision::Real = 1.0,
+)::iGMRF
+
+    G = GridStructure(m₁, m₂)
+
+    return iGMRF(G; order = order, precision = precision)
 end
 
 function Base.show(io::IO, obj::iGMRF)
 
     println(io, "iGMRF")
-    println(io, "G :")
-    showGridStructure(io, obj.G, prefix = "\t\t\t")
-    println(io)
-    println(io, "rank deficiency :\t", obj.rank_deficiency)
-    println(io, "κ :\t\t\t", obj.κ)
-
-end
-
-"""
-    iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)
-
-Construct an intrinsic Gaussian Markov random field on a regular two-dimensional
-lattice of size `(m₁, m₂)`.
-
-The argument `order` specifies the neighborhood structure. Use `order = 1` for a
-first-order iGMRF and `order = 2` for a second-order iGMRF. The parameter `κ` is
-the precision parameter.
-
-The constructor builds the corresponding `GridStructure`, sets the rank deficiency,
-and precomputes the log pseudo-determinant of the structure matrix.
-"""
-function iGMRF(m₁::Integer, m₂::Integer, order::Integer, κ::Real)::iGMRF
-
-    order in (1, 2) || throw(ArgumentError("order must be either 1 or 2."))
-    κ > 0 || throw(ArgumentError("κ must be positive."))
-
-    G = GridStructure(m₁, m₂; order = order)
-
-    rank_deficiency = order == 1 ? 1 : 3
-    log_pseudodet_W = log_pseudodet(G.W, rank_deficiency)
-
-    return iGMRF(G, rank_deficiency, κ, log_pseudodet_W)
+    showGridStructure(io, obj.G; prefix = " ")
+    println(io, " order = ", obj.order)
+    println(io, " precision = ", obj.precision)
 end
 
 """
@@ -54,11 +88,9 @@ vectors.
 """
 function constraint_matrix(F::iGMRF)::Matrix{Float64}
 
-    rank_deficiency = F.rank_deficiency
-    rank_deficiency in (1, 3) ||
-        throw(ArgumentError("rank_deficiency must be either 1 or 3."))
+    rank_deficiency = F.order == 1 ? 1 : 3
 
-    m₁, m₂ = F.G.grid_size
+    m₁, m₂ = F.G.m₁, F.G.m₂
     m = m₁ * m₂
 
     e₁ = ones(Float64, m)
@@ -88,12 +120,11 @@ simulation.
 """
 function rand(rng::AbstractRNG, F::iGMRF)::Vector{Float64}
 
-    κ = F.κ
-    κ > 0 || throw(ArgumentError("κ must be positive."))
+    κ = F.precision
 
-    W = F.G.W
+    W = F.W
     A = constraint_matrix(F)
-    m = prod(F.G.grid_size)
+    m = F.G.m₁ * F.G.m₂
 
     Q = κ * W + A * A'
     C = cholesky(Symmetric(Q))
@@ -124,14 +155,14 @@ This implements Eq. (3.13) of Rue and Held (2002).
 """
 function logpdf(F::GMRF.iGMRF, y::AbstractVector{<:Real})::Real
 
-    κ = F.κ
-    m = prod(F.G.grid_size)
-    k = F.rank_deficiency
-    W = F.G.W
+    κ = F.precision
+    m = F.G.m₁ * F.G.m₂
+    rank_deficiency = F.order == 1 ? 1 : 3
+    W = F.W
 
-    length(y) == m || throw(DimensionMismatch("length(y) must be equal to prod(F.G.grid_size)."))
+    length(y) == m || throw(DimensionMismatch("length(y) must be equal to F.G.m₁ * F.G.m₂."))
 
-    r = m - k
+    r = m - rank_deficiency
 
     v = W * y
     q = dot(y, v)
@@ -155,12 +186,13 @@ the precision of the full conditional distribution at grid cell `i`.
 """
 function full_conditional_canonical_parameters(
     F::iGMRF,
-    y::AbstractVector{<:Real})
+    y::AbstractVector{<:Real},
+)
 
-    κ = F.κ
+    κ = F.precision
 
-    W = F.G.W
-    W̄ = F.G.W̄
+    W = F.W
+    W̄ = F.W̄
 
     length(y) == size(W, 1) ||
         throw(DimensionMismatch("length(y) must be equal to the number of grid cells."))
@@ -172,6 +204,7 @@ function full_conditional_canonical_parameters(
 
     return h, Q
 end
+
 
 """
     full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCanon}
@@ -186,16 +219,6 @@ function full_conditionals(F::iGMRF, y::AbstractVector{<:Real})::Vector{NormalCa
     h, Q = full_conditional_canonical_parameters(F, y)
 
     return NormalCanon.(h, Q)
-end
-
-function fullcondlogpdf(F::iGMRF, y::Vector{<:Real})::Vector{<:Real}
-
-    pd = full_conditionals(F::iGMRF,y::Vector{<:Real})
-
-    clpdf = logpdf.(pd,y)
-
-    return clpdf
-
 end
 
 """
@@ -226,16 +249,16 @@ The vector `x` must have the same length and ordering as `B`. The returned
 distribution is represented in canonical normal form.
 """
 function conditional_distribution(
-    F::GMRF.iGMRF,
+    F::iGMRF,
     B::AbstractVector{<:Integer},
     x::AbstractVector{<:Real}
 )::MvNormalCanon
 
-    W = F.G.W
-    κ = F.κ
-    m = prod(F.G.grid_size)
+    W = F.W
+    κ = F.precision
+    m = F.G.m₁ * F.G.m₂
 
-    all(1 .<= B .<= m) || throw(ArgumentError("all indices in B must be between 1 and $m."))
+    all(1 .<= B) && all(B .<= m) || throw(ArgumentError("all indices in B must be between 1 and $m."))
     allunique(B) || throw(ArgumentError("indices in B must be unique."))
     length(x) == length(B) || throw(DimensionMismatch("length(x) must be equal to length(B)."))
 

@@ -1,154 +1,272 @@
+
 @testset "igmrf.jl" begin
-    @testset "Base.show(io, obj)" begin
-        # does not throw
-        G = GMRF.GridStructure((1,2), [[2], [1]], [[1],[2]], spzeros(1, 2), spzeros(1, 2))
-        igmrf = iGMRF(G, 1, 1.0, 0.)
-        io = IOBuffer()
-        @test_logs Base.show(io, igmrf)
 
-    end
+    @testset "constructors" begin
+        @testset "iGMRF of order 1" begin
+            F = iGMRF(3, 2, order=1, precision=1.)
 
-    @testset "iGMRF(m₁, m₂, order, κ, log_D)" begin
-        # order not 1 or 2 throws
-        @test_throws ArgumentError iGMRF(1, 1, 0, 0.)
+            @test F.G == GridStructure(3, 2)
+            @test F.order == 1
+            @test F.precision ≈ 1.0
 
-        # Simple grid of order 1
-        igmrf = iGMRF(2, 2, 1, 1.)
+            W_expected = sparse([
+                2 -1 0 -1 0 0
+                -1 3 -1 0 -1 0
+                0 -1 2 0 0 -1
+                -1 0 0 2 -1 0
+                0 -1 0 -1 3 -1
+                0 0 -1 0 -1 2
+            ])
+            @test F.W == W_expected
 
-        @test igmrf.G.grid_size == (2, 2)
-        @test igmrf.rank_deficiency == 1
-        @test igmrf.κ ≈ 1.0
-        @test igmrf.log_pseudodet_W ≈ 2.7725887222397803
-        # TODO : Test that W̄ was derived from W
+            W̄_expected = sparse([
+                0 -1 0 -1 0 0
+                -1 0 -1 0 -1 0
+                0 -1 0 0 0 -1
+                -1 0 0 0 -1 0
+                0 -1 0 -1 0 -1
+                0 0 -1 0 -1 0
+            ])
+            @test F.W̄ == W̄_expected
 
-        # Simple grid of order 2
-        igmrf = iGMRF(3, 3, 2, 1.)
+            @test F.cond_ind_subset == [[1, 3, 5], [2, 4, 6]]
 
-        @test igmrf.G.grid_size == (3, 3)
-        @test igmrf.rank_deficiency == 3
-        @test igmrf.κ ≈ 1.0
-        @test igmrf.log_pseudodet_W ≈ 12.647676800254212
-        # TODO : Test that W̄ was derived from W
+            @test F.log_pseudodet_W ≈ 4.499809670330264
+
+        end
+
+        @testset "iGMRF of order 2" begin
+            F = iGMRF(3, 2, order=2, precision=1.)
+
+            @test F.G == GridStructure(3, 2)
+            @test F.order == 2
+            @test F.precision ≈ 1.0
+
+            W_expected = sparse([
+                3 -4 1 -2 2 0
+                -4 8 -4 2 -4 2
+                1 -4 3 0 2 -2
+                -2 2 0 3 -4 1
+                2 -4 2 -4 8 -4
+                0 2 -2 1 -4 3
+            ])
+            @test F.W == W_expected
+
+            W̄_expected = sparse([
+                0 -4 1 -2 2 0
+                -4 0 -4 2 -4 2
+                1 -4 0 0 2 -2
+                -2 2 0 0 -4 1
+                2 -4 2 -4 0 -4
+                0 2 -2 1 -4 0
+            ])
+            @test F.W̄ == W̄_expected
+
+            @test F.cond_ind_subset == [[1], [4], [2], [5], [3], [6], []]
+
+            @test F.log_pseudodet_W ≈ 6.068425588244111
+
+        end
 
     end
 
     @testset "constraint_matrix" begin
         import GMRF.constraint_matrix
 
-    @testset "first-order iGMRF" begin
-        F = iGMRF(2, 3, 1, 1.0)
+        @testset "first-order iGMRF" begin
+            F = iGMRF(2, 3, order=1, precision=1.0)
 
-        A = constraint_matrix(F)
+            A = constraint_matrix(F)
 
-        @test size(A) == (6, 1)
-        @test A == ones(6, 1)
+            @test A == ones(Int64, 6, 1)
+        end
+
+        @testset "second-order iGMRF" begin
+            F = iGMRF(3, 3, order=2, precision=1.0)
+
+            A = constraint_matrix(F)
+
+            A_expected = [
+                1 1 1
+                1 2 1
+                1 3 1
+                1 1 2
+                1 2 2
+                1 3 2
+                1 1 3
+                1 2 3
+                1 3 3
+            ]
+
+            @test A == A_expected
+        end
     end
 
-    @testset "second-order iGMRF" begin
-        F = iGMRF(3, 3, 2, 1.0)
+    @testset "rand" begin
+        @testset "first-order iGMRF" begin
+            F = iGMRF(3, 3; order=1, precision=1.0)
 
-        A = constraint_matrix(F)
+            rng = MersenneTwister(1234)
+            y = rand(rng, F)
 
-        A_expected = [
-            1.0  1.0  1.0
-            1.0  2.0  1.0
-            1.0  3.0  1.0
-            1.0  1.0  2.0
-            1.0  2.0  2.0
-            1.0  3.0  2.0
-            1.0  1.0  3.0
-            1.0  2.0  3.0
-            1.0  3.0  3.0
-        ]
+            A = constraint_matrix(F)
 
-        @test size(A) == (9, 3)
-        @test A == A_expected
+            @test y isa Vector{Float64}
+            @test length(y) == 9
+            @test isapprox(A' * y, zeros(size(A, 2)); atol=1e-10) # verifies that the generated field satisfies the intrinsic constraints
+        end
+
+        @testset "second-order iGMRF" begin
+            F = iGMRF(3, 3; order=2, precision=1.0)
+
+            rng = MersenneTwister(1234)
+            y = rand(rng, F)
+
+            A = constraint_matrix(F)
+
+            @test y isa Vector{Float64}
+            @test length(y) == 9
+            @test isapprox(A' * y, zeros(size(A, 2)); atol=1e-10) # verifies that the generated field satisfies the intrinsic constraints
+        end
     end
+
+    @testset "logpdf(::iGMRF)" begin
+
+        @testset "first-order 2 x 2" begin
+            F = iGMRF(2, 2; order=1, precision=2.0)
+
+            y = [1.0, -1.0, 0.0, 0.0]
+            # For this y, y'Wy = 6.
+
+            # Eigenvalues of W are 0, 2, 2, 4.
+            # Hence log_pseudodet(W) = log(16), rank deficiency is 1, and r = 3.
+            expected =
+                -0.5 * 3 * log(2π) +
+                0.5 * 3 * log(2.0) +
+                0.5 * log(16.0) -
+                0.5 * 2.0 * 6.0
+
+            @test logpdf(F, y) ≈ expected
+        end
+
+        @testset "second-order 3 x 3 finite value" begin
+            F = iGMRF(3, 3; order=2, precision=2.)
+
+            # Eigenvalues of W are 0, 0, 0, 2, 6, 6, 12, 12, 30
+            # Hence log_pseudodet(W) = log(311040), rank deficiency is 3, and r = 6. 
+
+            y = [1., 0., 1., 0., 1., 0., 1., 0., 1.]
+            # For this y, y'Wy = 56.
+
+            expected =
+                -0.5 * 6 * log(2π) +
+                0.5 * 6 * log(2.0) +
+                0.5 * log(311040) -
+                0.5 * 2.0 * 56.
+
+            @test logpdf(F, y) ≈ expected
+        end
+
+        @testset "dimension mismatch" begin
+            F = iGMRF(2, 2; order=1, precision=1.0)
+            @test_throws DimensionMismatch logpdf(F, zeros(3))
+        end
+    end
+
+    @testset "full_conditional_canonical_parameters" begin
+
+        @testset "first-order 2 x 2 lattice" begin
+            F = iGMRF(2, 2; order=1, precision=2.0)
+
+            y = [1.0, 2.0, 3.0, 4.0]
+
+            h, Q = GMRF.full_conditional_canonical_parameters(F, y)
+
+            # For this y, W̄ * y = [-5, -5, -5, -5].
+            # With κ = 2, h = -κ * W̄ * y = [10, 10, 10, 10].
+            # Also Q = κ * diag(W) = [4, 4, 4, 4].
+
+            @test h == [10.0, 10.0, 10.0, 10.0]
+            @test Q == [4.0, 4.0, 4.0, 4.0]
+        end
+
+        @testset "dimension mismatch" begin
+            F = iGMRF(2, 2; order=1, precision=1.0)
+            @test_throws DimensionMismatch GMRF.full_conditional_canonical_parameters(F, zeros(3))
+        end
+    end
+
+    @testset "full_conditionals" begin
+
+        F = iGMRF(2, 2; order=1, precision=2.0)
+
+        y = [1.0, 2.0, 3.0, 4.0]
+
+        pd = GMRF.full_conditionals(F, y)
+        h, Q = GMRF.full_conditional_canonical_parameters(F, y)
+
+        @test length(pd) == 4
+        @test all(pd .== NormalCanon.(h, Q))
+
+    end
+
+    @testset "full_conditionals_logpdf" begin
+
+        @testset "first-order 2 x 2 lattice" begin
+            F = iGMRF(2, 2; order=1, precision=2.0)
+
+            y = [1.0, 2.0, 3.0, 4.0]
+
+            l = GMRF.full_conditionals_logpdf(F, y)
+
+            # For this case:
+            # h = [10, 10, 10, 10]
+            # Q = [4, 4, 4, 4]
+            h = fill(10.0, 4)
+            Q = fill(4.0, 4)
+
+            expected = @. h * y -
+                          0.5 * Q * y^2 -
+                          0.5 * log(2π) +
+                          0.5 * log(Q) -
+                          0.5 * h^2 / Q
+
+            @test l ≈ expected
+        end
+    end
+
+    @testset "conditional_distribution" begin
+        import GMRF.conditional_distribution
+
+        @testset "first-order 2 x 2 lattice" begin
+            F = iGMRF(2, 2; order=1, precision=2.0)
+
+            B = [1]
+            x = [10.0]
+
+            pd = conditional_distribution(F, B, x)
+
+            h_expected = [20.0, 20.0, -0.0]
+
+            J_expected = 2.0 .* [
+                2 0 -1
+                0 2 -1
+                -1 -1 2
+            ]
+
+            @test pd == MvNormalCanon(h_expected, J_expected)
+        end
+
+
+        @testset "invalid arguments" begin
+            F = iGMRF(2, 2; order=1, precision=1.0)
+
+            @test_throws ArgumentError conditional_distribution(F, [0], [1.0])
+            @test_throws ArgumentError conditional_distribution(F, [5], [1.0])
+            @test_throws ArgumentError conditional_distribution(F, [1, 1], [1.0, 2.0])
+            @test_throws DimensionMismatch conditional_distribution(F, [1, 2], [1.0])
+        end
+    end
+
 end
 
-    @testset "first_order_lattice_neighbors(m₁, m₂)" begin
-        # Grid 1 x 1
-        nbs, W = GMRF.first_order_lattice_neighbors(1, 1)
-
-        @test nbs == [[]]
-        # TODO : Test W
-
-        # Grid 2 x 2
-        nbs, W = GMRF.first_order_lattice_neighbors(2, 2)
-
-        @test nbs == [[2, 3], [1, 4], [1, 4], [2, 3]]
-        # TODO : Test W
-
-    end
-
-    @testset "second_order_lattice_neighbors(m₁, m₂)" begin
-        # Grid 1 x 1
-        nbs, W = GMRF.second_order_lattice_neighbors(1, 1)
-
-        @test nbs == [[]]
-        # TODO : Test W
-
-        # Grid 2 x 2
-        nbs, W = GMRF.second_order_lattice_neighbors(2, 2)
-
-        # TODO : Test nbs
-        # TODO : Test W
-
-    end
-
-    @testset "first_order_conditional_independent_subsets(m₁, m₂)" begin
-        # Grid 1 x 1
-        cond = GMRF.first_order_conditional_independent_subsets(1, 1)
-
-        # TODO : Test cond
-
-        # Grid 2 x 2
-        cond = GMRF.first_order_conditional_independent_subsets(2, 2)
-
-        # TODO : Test cond
-
-    end
-
-    @testset "second_order_conditional_independent_subsets(m₁, m₂)" begin
-        # Grid 1 x 1
-        cond = GMRF.second_order_conditional_independent_subsets(1, 1)
-
-        # TODO : Test cond
-
-        # Grid 2 x 2
-        cond = GMRF.second_order_conditional_independent_subsets(2, 2)
-
-        # TODO : Test cond
-
-    end
-
-    @testset "rand(F)" begin
-        # returns plausible data (rank_deficiency == 1)
-        # TODO: Test if all insupport ?
-
-        # returns plausible data (rank_deficiency == 3)
-        # TODO: Test if all insupport ?
-
-    end
-
-    @testset "logpdf(F, y)" begin
-        # TODO : Test with known values
-
-    end
-
-    @testset "fullconditionals(F, y)" begin
-        # TODO : Test with known values
-
-    end
-
-    @testset "fullcondlogpdf(F, y)" begin
-        # TODO : Test with known values
-
-    end
-
-    @testset "getconditional(F, B, x)" begin
-        # TODO : Test with known values
-
-    end
-
-end
