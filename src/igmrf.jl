@@ -215,23 +215,37 @@ function full_conditionals_logpdf(F::iGMRF, y::AbstractVector{<:Real})::Vector{F
     return @. h * y - 0.5 * Q * y^2 - 0.5 * log(2π) + 0.5 * log(Q) - 0.5 * h^2 / Q
 end
 
-function getconditional(F::GMRF.iGMRF, B::Vector{<:Integer}, x::Vector{<:Real})::MvNormalCanon
+
+"""
+    conditional_distribution(F::iGMRF, B::AbstractVector{<:Integer}, x::AbstractVector{<:Real})::MvNormalCanon
+
+Compute the conditional distribution of the grid cells outside `B`, given the
+values `x` at the grid cells in `B`.
+
+The vector `x` must have the same length and ordering as `B`. The returned
+distribution is represented in canonical normal form.
+"""
+function conditional_distribution(
+    F::GMRF.iGMRF,
+    B::AbstractVector{<:Integer},
+    x::AbstractVector{<:Real}
+)::MvNormalCanon
 
     W = F.G.W
+    κ = F.κ
+    m = prod(F.G.grid_size)
 
-    sort!(B)
+    all(1 .<= B .<= m) || throw(ArgumentError("all indices in B must be between 1 and $m."))
+    allunique(B) || throw(ArgumentError("indices in B must be unique."))
+    length(x) == length(B) || throw(DimensionMismatch("length(x) must be equal to length(B)."))
 
-    A = setdiff(1:(F.G.grid_size[1] * F.G.grid_size[2]), B)
+    A = setdiff(1:m, B)
 
-    Waa = W[A,A]
-    Wab = W[A,B]
+    W_AA = W[A, A]
+    W_AB = W[A, B]
 
-    h = -Wab*x*F.κ
+    h = -κ .* (W_AB * x)
+    J = κ .* Matrix(W_AA)
 
-    J = Array(F.κ*Waa)
-
-    pd = MvNormalCanon(h,J)
-
-    return pd
-
+    return MvNormalCanon(h, J)
 end
