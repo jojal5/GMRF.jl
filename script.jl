@@ -7,6 +7,14 @@ using GMRF
 
 F = iGMRF(20, 20, order = 1, precision = 1.)
 
+F = iGMRF(3, 2, order = 2, precision = 1.)
+GMRF.second_order_igmrf_conditional_independent_subsets(F.G)
+GMRF.log_pseudodet(F.W, 3)
+
+F = iGMRF(3, 2, order = 1, precision = 1.)
+
+GMRF.log_pseudodet(F.W, 1)
+
 F.G
 
 y = rand(F)

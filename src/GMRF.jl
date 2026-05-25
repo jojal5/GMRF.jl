@@ -10,6 +10,6 @@ include("gridstructure.jl")
 include("igmrf.jl")
 include("utils.jl")
 
-export iGMRF, rand, logpdf
+export GridStructure, iGMRF, rand, logpdf
 
 end # module
