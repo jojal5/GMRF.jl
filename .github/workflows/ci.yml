@@ -5,9 +5,11 @@ on:
     branches:
       - master
       - dev
-      - feature/github-actions
     tags: ['*']
   pull_request:
+    branches:
+      - master
+      - dev
   workflow_dispatch:
 
 concurrency:
