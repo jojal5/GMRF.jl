@@ -52,3 +52,8 @@ julia> B = [59; 70; 100; 117; 206; 221; 338; 349; 373; 380]
 julia> x = y[B]
 julia> GMRF.conditional_distribution(F, B, x)
 ```
+
+In a MCMC setup, the function `set_precision()` can be used to update the iGMRF precision, keeping the same the rest of the structure:
+```julia
+julia> F = set_precision(F, 2.0)
+```
