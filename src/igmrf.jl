@@ -272,3 +272,24 @@ function conditional_distribution(
 
     return MvNormalCanon(h, J)
 end
+
+"""
+    set_precision(F::iGMRF, precision::Real)::iGMRF
+
+Return a new `iGMRF` with updated precision, reusing the same lattice structure,
+conditional independent subsets, structure matrix, off-diagonal structure matrix,
+and log pseudo-determinant.
+"""
+function set_precision(F::iGMRF, precision::Real)::iGMRF
+    precision > 0 || throw(ArgumentError("precision must be positive."))
+
+    return iGMRF(
+        F.G,
+        F.order,
+        Float64(precision),
+        F.cond_ind_subset,
+        F.W,
+        F.W̄,
+        F.log_pseudodet_W,
+    )
+end

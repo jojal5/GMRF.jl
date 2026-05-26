@@ -257,7 +257,6 @@
             @test pd == MvNormalCanon(h_expected, J_expected)
         end
 
-
         @testset "invalid arguments" begin
             F = iGMRF(2, 2; order=1, precision=1.0)
 
@@ -266,6 +265,22 @@
             @test_throws ArgumentError conditional_distribution(F, [1, 1], [1.0, 2.0])
             @test_throws DimensionMismatch conditional_distribution(F, [1, 2], [1.0])
         end
+    end
+
+    @testset "set_precision" begin
+        import GMRF.set_precision
+        F = iGMRF(3, 3; order=1, precision=1.0)
+        G = set_precision(F, 2.5)
+
+        @test G.precision == 2.5
+        @test G.order == F.order
+        @test G.G === F.G
+        @test G.cond_ind_subset === F.cond_ind_subset
+        @test G.W === F.W
+        @test G.W̄ === F.W̄
+        @test G.log_pseudodet_W == F.log_pseudodet_W
+
+        @test_throws ArgumentError set_precision(F, 0.0)
     end
 
 end
