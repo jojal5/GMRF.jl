@@ -199,8 +199,7 @@ function full_conditional_canonical_parameters(
 
     h = -κ .* (W̄ * y)
 
-    Q = Vector(diag(W))
-    Q .*= κ
+    Q = Vector(diag(W)) .* κ
 
     return h, Q
 end
