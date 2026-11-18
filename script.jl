@@ -1,4 +1,4 @@
-using LinearAlgebra, SparseArrays, Test, Plots
+using LinearAlgebra, SparseArrays, Test
 
 using Pkg
 pkg"activate ."
