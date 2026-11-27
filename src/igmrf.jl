@@ -28,16 +28,14 @@ function iGMRF(G::GridStructure; order::Integer = 1, precision::Real = 1.0)::iGM
     if order == 1
         W = first_order_igmrf_structure_matrix(G)
         cond_ind_subset = first_order_igmrf_conditional_independent_subsets(G)
+        log_pseudodet_W = first_order_igmrf_log_pseudodet(G)
     else
         W = second_order_igmrf_structure_matrix(G)
         cond_ind_subset = second_order_igmrf_conditional_independent_subsets(G)
+        log_pseudodet_W = second_order_igmrf_log_pseudodet(G)
     end
 
     W̄ = W - spdiagm(0 => Vector(diag(W)))
-
-    rank_deficiency = order == 1 ? 1 : 3
-
-    log_pseudodet_W = log_pseudodet(W, rank_deficiency)
 
     return iGMRF(
         G,
@@ -291,4 +289,47 @@ function set_precision(F::iGMRF, precision::Real)::iGMRF
         F.W̄,
         F.log_pseudodet_W,
     )
+end
+
+
+function first_order_igmrf_log_pseudodet(G::GridStructure)
+    G.m₁ * G.m₂ > 1 || throw(ArgumentError("at least two grid cells are required"))
+
+    # Each grid eigenvalue is the sum of one eigenvalue from each axis.
+    path_eigenvalues(n) = [4 * sinpi(k / (2 * n))^2 for k in 0:(n - 1)]
+    λ₁ = path_eigenvalues(G.m₁)
+    λ₂ = path_eigenvalues(G.m₂)
+
+    log_pdet = 0.0
+    for λ_col in λ₂, λ_row in λ₁
+        λ = λ_row + λ_col
+        if λ > 0
+            log_pdet += log(λ)
+        end
+    end
+    return log_pdet
+end
+
+function second_order_igmrf_log_pseudodet(G::GridStructure)
+    m₁, m₂ = G.m₁, G.m₂
+    m = m₁ * m₂
+
+    W = second_order_igmrf_structure_matrix(G)
+
+    # On a single row or column, the original constructor omits three eigenvalues.
+    if m₁ == 1 || m₂ == 1
+        return log_pseudodet(W, 3)
+    end
+
+    # Fix the field at three corners to obtain a positive definite sparse matrix.
+    corners = (1, m₁, m - m₁ + 1)
+    free = setdiff(1:m, corners)
+    logdet_minor = logdet(cholesky(Symmetric(W[free, free])))
+
+    # The null-space basis (1, x, y) is orthogonal on the grid and has
+    # determinant 1 at the three corners. Its squared norms give the correction.
+    x = range(-0.5, 0.5; length=m₁)
+    y = range(-0.5, 0.5; length=m₂)
+
+    return logdet_minor + log(m) + log(m₂ * sum(abs2, x)) + log(m₁ * sum(abs2, y))
 end
