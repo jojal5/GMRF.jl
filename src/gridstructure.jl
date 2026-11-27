@@ -109,7 +109,7 @@ The matrix is constructed from local second-difference stencils in the vertical,
 horizontal, and diagonal directions. It is symmetric, positive semidefinite, and
 has rank deficiency three for a sufficiently large rectangular lattice.
 """
-function second_order_igmrf_structure_matrix(G::GridStructure)::SparseMatrixCSC{Int64,Int64}
+function second_order_igmrf_structure_matrix_stencils(G::GridStructure)::SparseMatrixCSC{Int64,Int64}
 
     m₁ = G.m₁
     m₂ = G.m₂
@@ -168,6 +168,21 @@ function second_order_igmrf_structure_matrix(G::GridStructure)::SparseMatrixCSC{
     end
 
     return W
+end
+
+function second_order_igmrf_structure_matrix(G::GridStructure)::SparseMatrixCSC{Int64,Int64}
+    function axis_matrices(n)
+        Iₙ = spdiagm(0 => ones(Int64, n))
+        D₁ = diff(Iₙ; dims=1)
+        D₂ = diff(D₁; dims=1)
+        return Iₙ, D₁' * D₁, D₂' * D₂
+    end
+
+    I₁, L₁, B₁ = axis_matrices(G.m₁)
+    I₂, L₂, B₂ = axis_matrices(G.m₂)
+
+    # Second differences along each axis, plus twice the mixed-difference penalty.
+    return kron(I₂, B₁) + kron(B₂, I₁) + 2 * kron(L₂, L₁)
 end
 
 """

@@ -70,11 +70,11 @@
     end
 
 
-    @testset "second_order_igmrf_structure_matrix" begin
-        import GMRF.second_order_igmrf_structure_matrix
+    @testset "second_order_igmrf_structure_matrix_stencils" begin
+        import GMRF.second_order_igmrf_structure_matrix_stencils
 
         @testset "3 x 2 lattice" begin
-            W = second_order_igmrf_structure_matrix(GridStructure(3,2))
+            W = second_order_igmrf_structure_matrix_stencils(GridStructure(3,2))
 
             W_expected = sparse([
                 3 -4 1 -2 2 0
@@ -89,7 +89,7 @@
         end
 
         @testset "3 x 3 lattice" begin
-            W = second_order_igmrf_structure_matrix(GridStructure(3,3))
+            W = second_order_igmrf_structure_matrix_stencils(GridStructure(3,3))
 
             W_expected = sparse([
                 4 -4 1 -4 2 0 1 0 0
@@ -102,6 +102,31 @@
                 0 1 0 2 -6 2 -4 9 -4
                 0 0 1 0 2 -4 1 -4 4
             ])
+
+            @test W == W_expected
+        end
+
+    end
+
+    @testset "second_order_igmrf_structure_matrix_stencils" begin
+        import GMRF: second_order_igmrf_structure_matrix_stencils, second_order_igmrf_structure_matrix
+
+        @testset "3 x 2 lattice" begin
+            G = GridStructure(3,2)
+
+            W_expected  = second_order_igmrf_structure_matrix_stencils(G)
+
+            W = second_order_igmrf_structure_matrix(G)
+
+            @test W == W_expected
+        end
+
+        @testset "3 x 5 lattice" begin
+            G = GridStructure(3,5)
+            
+            W_expected  = second_order_igmrf_structure_matrix_stencils(G)
+
+            W = second_order_igmrf_structure_matrix(G)
 
             @test W == W_expected
         end
