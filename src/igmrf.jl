@@ -28,16 +28,15 @@ function iGMRF(G::GridStructure; order::Integer = 1, precision::Real = 1.0)::iGM
     if order == 1
         W = first_order_igmrf_structure_matrix(G)
         cond_ind_subset = first_order_igmrf_conditional_independent_subsets(G)
+        log_pseudodet_W = first_order_igmrf_log_pseudodet(G)
     else
         W = second_order_igmrf_structure_matrix(G)
         cond_ind_subset = second_order_igmrf_conditional_independent_subsets(G)
+        rank_deficiency = order == 1 ? 1 : 3
+        log_pseudodet_W = log_pseudodet(W, rank_deficiency)
     end
 
     W̄ = W - spdiagm(0 => Vector(diag(W)))
-
-    rank_deficiency = order == 1 ? 1 : 3
-
-    log_pseudodet_W = log_pseudodet(W, rank_deficiency)
 
     return iGMRF(
         G,
@@ -291,4 +290,23 @@ function set_precision(F::iGMRF, precision::Real)::iGMRF
         F.W̄,
         F.log_pseudodet_W,
     )
+end
+
+
+function first_order_igmrf_log_pseudodet(G::GridStructure)
+    G.m₁ * G.m₂ > 1 || throw(ArgumentError("at least two grid cells are required"))
+
+    # Each grid eigenvalue is the sum of one eigenvalue from each axis.
+    path_eigenvalues(n) = [4 * sinpi(k / (2 * n))^2 for k in 0:(n - 1)]
+    λ₁ = path_eigenvalues(G.m₁)
+    λ₂ = path_eigenvalues(G.m₂)
+
+    log_pdet = 0.0
+    for λ_col in λ₂, λ_row in λ₁
+        λ = λ_row + λ_col
+        if λ > 0
+            log_pdet += log(λ)
+        end
+    end
+    return log_pdet
 end

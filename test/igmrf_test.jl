@@ -283,5 +283,15 @@
         @test_throws ArgumentError set_precision(F, 0.0)
     end
 
+    @testset "first_order_igmrf_log_pseudodet()" begin
+        import GMRF: log_pseudodet, first_order_igmrf_log_pseudodet
+
+        G = GridStructure(3,4)
+        F = iGMRF(G, order = 1, precision = 1.)
+        expected_logpseusodet = log_pseudodet(F.W, 1)
+        @test first_order_igmrf_log_pseudodet(G) ≈ expected_logpseusodet
+
+    end
+
 end
 

@@ -47,3 +47,26 @@ l1 = logpdf(F, y)
 l =  GMRF.full_conditionals_logpdf(F,y)
 
 l2 = sum(l)
+
+
+
+function second_order_igmrf_structure_matrix_kron(G::GridStructure)::SparseMatrixCSC{Int64,Int64}
+    function axis_matrices(n)
+        Iₙ = spdiagm(0 => ones(Int64, n))
+        D₁ = diff(Iₙ; dims=1)
+        D₂ = diff(D₁; dims=1)
+        return Iₙ, D₁' * D₁, D₂' * D₂
+    end
+
+    I₁, L₁, B₁ = axis_matrices(G.m₁)
+    I₂, L₂, B₂ = axis_matrices(G.m₂)
+
+    # Second differences along each axis, plus twice the mixed-difference penalty.
+    return kron(I₂, B₁) + kron(B₂, I₁) + 2 * kron(L₂, L₁)
+end
+
+
+G = GridStructure(5,15)
+
+@time expected = GMRF.second_order_igmrf_structure_matrix(G)
+@test second_order_igmrf_structure_matrix_kron(G) == expected
