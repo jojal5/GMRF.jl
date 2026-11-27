@@ -293,5 +293,19 @@
 
     end
 
+    @testset "second_order_igmrf_log_pseudodet()" begin
+        import GMRF: second_order_igmrf_log_pseudodet
+
+        G = GridStructure(5, 10)
+        F = iGMRF(G, order = 2, precision = .1)
+
+        expected_logpseusodet = GMRF.log_pseudodet(F.W, 3)
+
+        logpseusodet = second_order_igmrf_log_pseudodet(G)
+
+        @test logpseusodet ≈ expected_logpseusodet
+    
+    end
+
 end
 

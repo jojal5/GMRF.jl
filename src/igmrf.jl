@@ -32,8 +32,7 @@ function iGMRF(G::GridStructure; order::Integer = 1, precision::Real = 1.0)::iGM
     else
         W = second_order_igmrf_structure_matrix(G)
         cond_ind_subset = second_order_igmrf_conditional_independent_subsets(G)
-        rank_deficiency = order == 1 ? 1 : 3
-        log_pseudodet_W = log_pseudodet(W, rank_deficiency)
+        log_pseudodet_W = second_order_igmrf_log_pseudodet(G)
     end
 
     W̄ = W - spdiagm(0 => Vector(diag(W)))
@@ -309,4 +308,28 @@ function first_order_igmrf_log_pseudodet(G::GridStructure)
         end
     end
     return log_pdet
+end
+
+function second_order_igmrf_log_pseudodet(G::GridStructure)
+    m₁, m₂ = G.m₁, G.m₂
+    m = m₁ * m₂
+
+    W = second_order_igmrf_structure_matrix(G)
+
+    # On a single row or column, the original constructor omits three eigenvalues.
+    if m₁ == 1 || m₂ == 1
+        return log_pseudodet(W, 3)
+    end
+
+    # Fix the field at three corners to obtain a positive definite sparse matrix.
+    corners = (1, m₁, m - m₁ + 1)
+    free = setdiff(1:m, corners)
+    logdet_minor = logdet(cholesky(Symmetric(W[free, free])))
+
+    # The null-space basis (1, x, y) is orthogonal on the grid and has
+    # determinant 1 at the three corners. Its squared norms give the correction.
+    x = range(-0.5, 0.5; length=m₁)
+    y = range(-0.5, 0.5; length=m₂)
+
+    return logdet_minor + log(m) + log(m₂ * sum(abs2, x)) + log(m₁ * sum(abs2, y))
 end
